@@ -15,7 +15,9 @@
     <string name="pasoDatosGasolinera">DatosGasolinera</string>
     <string name="pasoTipoCombustible">Tipo de Combustible</string>
     <string name="configuracion">Configuración</string>
+    <string name="ubicacion">Ubicación</string>
     <string name="combustible_default">Escoja su combustible de preferencia</string>
+    <string name="anhadir_punto_partida">Añada la ubicación como punto de partida</string>
     <string name="combustible_actual">Combustible:</string>
     <string-array name="operacionesArray">
         <item>Combustible</item>

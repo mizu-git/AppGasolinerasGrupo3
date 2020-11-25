@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageButton config;
     ImageView menu;
     Button buttonConfig;
+    Button buttonUbicacion;
 
 
 
@@ -140,11 +141,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         config = findViewById(R.id.info);
         menu = findViewById(R.id.menuNav);
         buttonConfig = findViewById(R.id.btnConfiguracion);
+        buttonUbicacion = findViewById(R.id.btnUbicacion);
         buttonFiltros.setOnClickListener(this);
         buttonOrden.setOnClickListener(this);
         config.setOnClickListener(this);
         menu.setOnClickListener(this);
         buttonConfig.setOnClickListener(this);
+        buttonUbicacion.setOnClickListener(this);
 
     }
 
@@ -239,6 +242,95 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.create();
         builder.show();
     }
+
+    public void clickUbicacion() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Set the dialog title
+        builder.setTitle("Ubicación");
+        // Specify the list array, the items to be selected by default (null for none),
+
+        // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
+        View mView = getLayoutInflater().inflate(R.layout.anhadir_ubicacion_punto_partida_layout, null);
+
+        /*final Spinner mSpinner = (Spinner) mView.findViewById(R.id.combustible_por_defecto);// New spinner object
+        final TextView comb = mView.findViewById(R.id.porDefecto);
+        try {
+            comb.setText("Combustible actual: "+presenterGasolineras.lecturaCombustiblePorDefecto(ac, FICHERO));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // El spinner creado contiene todos los items del array de Strings "operacionesArray"
+        final ArrayAdapter<String> adapterSpinner = new ArrayAdapter<String>(
+                this, android.R.layout.simple_spinner_item,
+                getResources().getStringArray(R.array.operacionesArray)){
+            @Override
+            public boolean isEnabled(int position){
+                boolean habilitado;
+                if(position == 0)
+                {
+                    // Disable the first item from Spinner
+                    // First item will be use for hint
+                    habilitado = false;
+                }
+                else
+                {
+                    habilitado = true;
+                }
+                return habilitado;
+            }
+            @Override
+            public View getDropDownView(int position, View convertView,
+                                        ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) view;
+                if(position == 0){
+                    // Set the hint text color gray
+                    tv.setTextColor(Color.GRAY);
+                }
+                else {
+                    tv.setTextColor(Color.BLACK);
+                }
+                return view;
+            }
+        };
+        // Al abrir el spinner la lista se abre hacia abajo
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(adapterSpinner);*/
+
+        // Set the action buttons
+        builder.setPositiveButton("Establecer", (dialog, id) -> {
+            // User clicked Aceptar, save the item selected in the spinner
+            // If the user does not select nothing, don't do anything
+            /*if (!mSpinner.getSelectedItem().toString().equalsIgnoreCase("Combustible")) {
+                tipoCombustible = mSpinner.getSelectedItem().toString();
+                try {
+                    presenterGasolineras.escrituraCombustiblePorDefecto(mSpinner.getSelectedItem().toString(), ac, FICHERO);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }catch (IOException ex){
+                    ex.printStackTrace();
+                } catch (PresenterGasolineras.CombustibleNoExistente combustibleNoExistente) {
+                    combustibleNoExistente.printStackTrace();
+                }
+                try {
+                    tipoCombustible = presenterGasolineras.lecturaCombustiblePorDefecto(ac, FICHERO);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            closeDrawer(drawerLayout);*/
+            refresca();
+        });
+        builder.setNegativeButton(CANCELAR, (dialog, id) -> {
+            dialog.dismiss();
+            closeDrawer(drawerLayout);
+        });
+        builder.setView(mView);
+        builder.create();
+        builder.show();
+    }
+
 
     public static void openDrawer(DrawerLayout drawerLayout){
         drawerLayout.openDrawer(GravityCompat.START);
@@ -368,6 +460,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         } else if (v.getId() == R.id.btnConfiguracion) {
             this.clickConfiguracion();
+        } else if (v.getId() == R.id.btnUbicacion) {
+            this.clickUbicacion();
         }
     }
 

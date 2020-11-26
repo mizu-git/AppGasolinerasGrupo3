@@ -1,8 +1,12 @@
 package com.isunican.proyectobase.Views;
 
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.isunican.proyectobase.Presenter.*;
 import com.isunican.proyectobase.Model.*;
 import com.isunican.proyectobase.R;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -25,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -65,6 +70,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView menu;
     Button buttonConfig;
     Button buttonUbicacion;
+
+    TextInputLayout layLatitud;
+    TextInputLayout layLongitud;
+    TextInputEditText textInputLatitud;
+    TextInputEditText textInputLongitud;
 
 
 
@@ -142,6 +152,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         menu = findViewById(R.id.menuNav);
         buttonConfig = findViewById(R.id.btnConfiguracion);
         buttonUbicacion = findViewById(R.id.btnUbicacion);
+
+        layLatitud = findViewById(R.id.layout_latitud);
+        layLongitud = findViewById(R.id.layout_longitud);
+        textInputLatitud = findViewById(R.id.text_input_latitud);
+        textInputLongitud = findViewById(R.id.text_input_longitud);
+
         buttonFiltros.setOnClickListener(this);
         buttonOrden.setOnClickListener(this);
         config.setOnClickListener(this);
@@ -150,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonUbicacion.setOnClickListener(this);
 
     }
+
 
     public void clickMenu() {
         openDrawer(drawerLayout);
@@ -244,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void clickUbicacion() {
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         // Set the dialog title
@@ -253,54 +271,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
         View mView = getLayoutInflater().inflate(R.layout.anhadir_ubicacion_punto_partida_layout, null);
 
-        /*final Spinner mSpinner = (Spinner) mView.findViewById(R.id.combustible_por_defecto);// New spinner object
-        final TextView comb = mView.findViewById(R.id.porDefecto);
+        /*
+        final TextInputLayout inputLatitud = (TextInputLayout) mView.findViewById(R.id.text_input_latitud);
+        final TextInputLayout inputLongitud = (TextInputLayout) mView.findViewById(R.id.text_input_longitud);
+        */
+
+
+        /*final TextView comb = mView.findViewById(R.id.ubicacionActual);
+
         try {
-            comb.setText("Combustible actual: "+presenterGasolineras.lecturaCombustiblePorDefecto(ac, FICHERO));
+            comb.setText("Ubicación actual: " + presenterGasolineras.lecturaUbicacionPorDefecto(ac, FICHERO));
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        // El spinner creado contiene todos los items del array de Strings "operacionesArray"
-        final ArrayAdapter<String> adapterSpinner = new ArrayAdapter<String>(
-                this, android.R.layout.simple_spinner_item,
-                getResources().getStringArray(R.array.operacionesArray)){
-            @Override
-            public boolean isEnabled(int position){
-                boolean habilitado;
-                if(position == 0)
-                {
-                    // Disable the first item from Spinner
-                    // First item will be use for hint
-                    habilitado = false;
-                }
-                else
-                {
-                    habilitado = true;
-                }
-                return habilitado;
-            }
-            @Override
-            public View getDropDownView(int position, View convertView,
-                                        ViewGroup parent) {
-                View view = super.getDropDownView(position, convertView, parent);
-                TextView tv = (TextView) view;
-                if(position == 0){
-                    // Set the hint text color gray
-                    tv.setTextColor(Color.GRAY);
-                }
-                else {
-                    tv.setTextColor(Color.BLACK);
-                }
-                return view;
-            }
-        };
-        // Al abrir el spinner la lista se abre hacia abajo
-        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mSpinner.setAdapter(adapterSpinner);*/
+        }*/
+
 
         // Set the action buttons
         builder.setPositiveButton("Establecer", (dialog, id) -> {
-            // User clicked Aceptar, save the item selected in the spinner
+
+            // Posibles casos de error
+            if (!validateLatitud() || !validateLongitud()) {
+                return;
+            }
+            // Se pulsa Establecer y se guardan los valores de latitud y longitud proporcionados
+
             // If the user does not select nothing, don't do anything
             /*if (!mSpinner.getSelectedItem().toString().equalsIgnoreCase("Combustible")) {
                 tipoCombustible = mSpinner.getSelectedItem().toString();
@@ -318,9 +312,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-            closeDrawer(drawerLayout);*/
-            refresca();
+            }*/
+                closeDrawer(drawerLayout);
+                Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
+                refresca();
+
         });
         builder.setNegativeButton(CANCELAR, (dialog, id) -> {
             dialog.dismiss();
@@ -329,6 +325,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setView(mView);
         builder.create();
         builder.show();
+    }
+
+    /**
+     * Casos de error a la hora de introducir la latitud
+     * @return false si la longitud esta vacia y si tiene mas de 15 caracteres.
+     * Y true si todo es correcto
+     */
+    private boolean validateLatitud() {
+
+        String latitud = textInputLatitud.getText().toString().trim();
+        double numLatitud = Double.parseDouble(textInputLatitud.getText().toString());
+
+        //if (latitudInput.isEmpty()) {
+        if (latitud == null) {
+            layLatitud.setError("La latitud no puede estar vacia");
+            return false;
+
+        } else if (latitud.length() > 15) {
+            layLatitud.setError("Latitud demasiado larga");
+            return false;
+
+        } else if (numLatitud < -90) {
+            layLatitud.setError("La latitud debe ser mayor de -90");
+            return false;
+
+        } else if (numLatitud > 90) {
+            layLatitud.setError("La latitud debe ser menor de 90");
+            return false;
+
+        } else {
+            layLatitud.setError(null);
+            return true;
+        }
+    }
+
+    /**
+     * Casos de error a la hora de introducir la longitud
+     * @return false si la longitud esta vacia y si tiene mas de 15 caracteres.
+     * Y true si todo es correcto
+     */
+    private boolean validateLongitud() {
+
+        String longitud = textInputLongitud.getText().toString().trim();
+        double numLongitud = Double.parseDouble(textInputLongitud.getText().toString());
+
+        //if (longitudInput.isEmpty()) {
+        if (longitud == null) {
+            layLongitud.setError("La longitud no puede estar vacia");
+            return false;
+
+        } else if (longitud.length() > 15) {
+            layLongitud.setError("Longitud demasiado largo");
+            return false;
+
+        }  else if (numLongitud < -180) {
+            layLatitud.setError("La latitud debe ser mayor de -180");
+            return false;
+
+        } else if (numLongitud > 180) {
+            layLatitud.setError("La latitud debe ser menor de 180");
+            return false;
+
+        } else {
+            layLongitud.setError(null);
+            return true;
+        }
+
     }
 
 
@@ -460,6 +523,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         } else if (v.getId() == R.id.btnConfiguracion) {
             this.clickConfiguracion();
+
         } else if (v.getId() == R.id.btnUbicacion) {
             this.clickUbicacion();
         }

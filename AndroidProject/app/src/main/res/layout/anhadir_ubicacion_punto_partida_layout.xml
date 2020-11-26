@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <TextView
@@ -22,12 +23,18 @@
         android:textSize="20dp" />
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layout_latitud"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:counterEnabled="true"
+        app:counterMaxLength="15"
+        app:errorEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/text_input_latitud"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:inputType="phone" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
@@ -39,11 +46,17 @@
         android:textSize="20dp" />
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layout_longitud"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:counterEnabled="true"
+        app:counterMaxLength="15"
+        app:errorEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/text_input_longitud"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:inputType="phone"/>
     </com.google.android.material.textfield.TextInputLayout>
 </LinearLayout>

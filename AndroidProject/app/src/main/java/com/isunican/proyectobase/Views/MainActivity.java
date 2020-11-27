@@ -341,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             /*dialog.dismiss();
             closeDrawer(drawerLayout);*/
         });
-        
+
         builder.setView(mView);
         builder.create();
         builder.show();

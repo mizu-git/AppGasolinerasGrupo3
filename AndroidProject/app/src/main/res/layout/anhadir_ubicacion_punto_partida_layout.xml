@@ -59,4 +59,24 @@
             android:layout_height="wrap_content"
             android:inputType="phone"/>
     </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="40dp">
+
+        <Button
+            android:id="@+id/btn_cancelar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancelar" />
+
+        <Button
+            android:id="@+id/btn_establecer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Establecer" />
+    </LinearLayout>
 </LinearLayout>

@@ -10,6 +10,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -71,10 +72,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button buttonConfig;
     Button buttonUbicacion;
 
-    TextInputLayout layLatitud;
-    TextInputLayout layLongitud;
-    TextInputEditText textInputLatitud;
-    TextInputEditText textInputLongitud;
+    TextInputLayout textInputLatitud;
+    TextInputLayout textInputLongitud;
+    //TextInputLayout layLatitud;
+    //TextInputLayout layLongitud;
+    //TextInputEditText textInputLatitud;
+    //TextInputEditText textInputLongitud;
+    Button buttonCancelar;
+    Button buttonEstablecer;
 
 
 
@@ -153,10 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonConfig = findViewById(R.id.btnConfiguracion);
         buttonUbicacion = findViewById(R.id.btnUbicacion);
 
-        layLatitud = findViewById(R.id.layout_latitud);
-        layLongitud = findViewById(R.id.layout_longitud);
-        textInputLatitud = findViewById(R.id.text_input_latitud);
-        textInputLongitud = findViewById(R.id.text_input_longitud);
+
 
         buttonFiltros.setOnClickListener(this);
         buttonOrden.setOnClickListener(this);
@@ -266,16 +268,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Set the dialog title
         builder.setTitle("Ubicación");
+
+
         // Specify the list array, the items to be selected by default (null for none),
 
         // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
         View mView = getLayoutInflater().inflate(R.layout.anhadir_ubicacion_punto_partida_layout, null);
 
-        /*
-        final TextInputLayout inputLatitud = (TextInputLayout) mView.findViewById(R.id.text_input_latitud);
-        final TextInputLayout inputLongitud = (TextInputLayout) mView.findViewById(R.id.text_input_longitud);
-        */
+        //layLatitud = mView.findViewById(R.id.layout_latitud);
+        //layLongitud = mView.findViewById(R.id.layout_longitud);
+        //textInputLatitud = mView.findViewById(R.id.text_input_latitud);
+        //textInputLongitud = mView.findViewById(R.id.text_input_longitud);
+        textInputLatitud = mView.findViewById(R.id.layout_latitud);
+        textInputLongitud = mView.findViewById(R.id.layout_longitud);
 
+        buttonCancelar = mView.findViewById(R.id.btn_cancelar);
+        buttonEstablecer = mView.findViewById(R.id.btn_establecer);
+
+        buttonEstablecer.setVisibility(View.GONE);
+        buttonCancelar.setVisibility(View.GONE);
 
         /*final TextView comb = mView.findViewById(R.id.ubicacionActual);
 
@@ -285,43 +296,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }*/
 
+        /*
+        buttonEstablecer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!validateLatitud() | !validateLongitud()) {
+                    return;
+                } else {
+                    closeDrawer(drawerLayout);
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
+                    refresca();
+                }
+            }
+
+        });
+
+        buttonCancelar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //dialog.dismiss();
+                closeDrawer(drawerLayout);
+            }
+
+        });*/
+
 
         // Set the action buttons
-        builder.setPositiveButton("Establecer", (dialog, id) -> {
+        builder.setPositiveButton("Establecer", (DialogInterface dialog, int id) -> {
+
 
             // Posibles casos de error
-            if (!validateLatitud() || !validateLongitud()) {
-                return;
-            }
-            // Se pulsa Establecer y se guardan los valores de latitud y longitud proporcionados
+            if (!validateLatitud() | !validateLongitud()) {
+                Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
+            } else {
 
-            // If the user does not select nothing, don't do anything
-            /*if (!mSpinner.getSelectedItem().toString().equalsIgnoreCase("Combustible")) {
-                tipoCombustible = mSpinner.getSelectedItem().toString();
-                try {
-                    presenterGasolineras.escrituraCombustiblePorDefecto(mSpinner.getSelectedItem().toString(), ac, FICHERO);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }catch (IOException ex){
-                    ex.printStackTrace();
-                } catch (PresenterGasolineras.CombustibleNoExistente combustibleNoExistente) {
-                    combustibleNoExistente.printStackTrace();
-                }
-                try {
-                    tipoCombustible = presenterGasolineras.lecturaCombustiblePorDefecto(ac, FICHERO);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }*/
+                // Se pulsa Establecer y se guardan los valores de latitud y longitud proporcionados
                 closeDrawer(drawerLayout);
                 Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
                 refresca();
+            }
 
         });
         builder.setNegativeButton(CANCELAR, (dialog, id) -> {
-            dialog.dismiss();
-            closeDrawer(drawerLayout);
+            /*dialog.dismiss();
+            closeDrawer(drawerLayout);*/
         });
+        
         builder.setView(mView);
         builder.create();
         builder.show();
@@ -334,18 +354,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private boolean validateLatitud() {
 
-        String latitud = textInputLatitud.getText().toString().trim();
-        double numLatitud = Double.parseDouble(textInputLatitud.getText().toString());
+        String latitud = textInputLatitud.getEditText().getText().toString().trim();
+        //double numLatitud = Double.parseDouble(textInputLatitud.getText().toString());
 
-        //if (latitudInput.isEmpty()) {
-        if (latitud == null) {
-            layLatitud.setError("La latitud no puede estar vacia");
+        //if () {
+        if (latitud.isEmpty()) {
+            textInputLatitud.setError("La latitud no puede estar vacia");
             return false;
 
         } else if (latitud.length() > 15) {
-            layLatitud.setError("Latitud demasiado larga");
+            textInputLatitud.setError("Latitud demasiado larga");
             return false;
-
+        /*
         } else if (numLatitud < -90) {
             layLatitud.setError("La latitud debe ser mayor de -90");
             return false;
@@ -353,9 +373,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (numLatitud > 90) {
             layLatitud.setError("La latitud debe ser menor de 90");
             return false;
-
+*/
         } else {
-            layLatitud.setError(null);
+            textInputLatitud.setError(null);
             return true;
         }
     }
@@ -367,18 +387,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private boolean validateLongitud() {
 
-        String longitud = textInputLongitud.getText().toString().trim();
-        double numLongitud = Double.parseDouble(textInputLongitud.getText().toString());
+        String longitud = textInputLongitud.getEditText().getText().toString().trim();
+        //double numLongitud = Double.parseDouble(textInputLongitud.getText().toString());
 
         //if (longitudInput.isEmpty()) {
-        if (longitud == null) {
-            layLongitud.setError("La longitud no puede estar vacia");
+        if (longitud.isEmpty()) {
+            textInputLongitud.setError("La longitud no puede estar vacia");
             return false;
 
         } else if (longitud.length() > 15) {
-            layLongitud.setError("Longitud demasiado largo");
+            textInputLongitud.setError("Longitud demasiado largo");
             return false;
-
+/*
         }  else if (numLongitud < -180) {
             layLatitud.setError("La latitud debe ser mayor de -180");
             return false;
@@ -386,9 +406,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (numLongitud > 180) {
             layLatitud.setError("La latitud debe ser menor de 180");
             return false;
-
+*/
         } else {
-            layLongitud.setError(null);
+            textInputLongitud.setError(null);
             return true;
         }
 
@@ -614,7 +634,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!presenterGasolineras.getGasolineras().isEmpty()) {
                     // datos obtenidos con exito
                     listViewGasolineras.setAdapter(adapter);
+
                     toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.datos_exito), Toast.LENGTH_LONG);
+                //} else if (!latitud.isEmpty() && !longitud.isEmpty()) {
+                    //toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
                 } else {
                     // los datos estan siendo actualizados en el servidor, por lo que no son actualmente accesibles
                     // sucede en torno a las :00 y :30 de cada hora

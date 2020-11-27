@@ -25,6 +25,9 @@ import android.util.DisplayMetrics;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String DRAWABLE = "drawable";
     public static final String CANCELAR = "Cancelar";
     public static final String FICHERO = "datos.txt";
+    public static final String FICHERO_UBICACION = "datosUbicacion.txt";
 
     PresenterGasolineras presenterGasolineras;
 
@@ -74,12 +78,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     TextInputLayout textInputLatitud;
     TextInputLayout textInputLongitud;
-    //TextInputLayout layLatitud;
-    //TextInputLayout layLongitud;
-    //TextInputEditText textInputLatitud;
-    //TextInputEditText textInputLongitud;
+    TextView labelLongitud;
+    TextView labelLatitud;
     Button buttonCancelar;
     Button buttonEstablecer;
+
 
 
 
@@ -92,6 +95,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     final String[] idImgOrdernPrecio = {FLECHA_ARRIBA};
 
     String tipoCombustible = "Gasóleo A"; //Por defecto
+
+    // Coordenadas por defecto
+    String latitud = "43.350223552917";
+    String longitud = "-4.052258920907";
+    String coordenada = latitud + " " + longitud;
+
+
     boolean esAsc = true; //Por defecto ascendente
 
     Activity ac = this;
@@ -157,8 +167,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         menu = findViewById(R.id.menuNav);
         buttonConfig = findViewById(R.id.btnConfiguracion);
         buttonUbicacion = findViewById(R.id.btnUbicacion);
-
-
 
         buttonFiltros.setOnClickListener(this);
         buttonOrden.setOnClickListener(this);
@@ -262,31 +270,63 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.show();
     }
 
+    /**
+     * Segunda opcion en la barra superior de la izquierda para podern anhadir una
+     * ubicacion como punto de partida habitual
+     */
     public void clickUbicacion() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Ubicación");
+
+
+        /*AlertDialog builder2 = new AlertDialog.Builder(this)
+                .setTitle("Ubicación")
+                .setPositiveButton("Establecer", null)
+                .setNegativeButton("Cancelar", null)
+                .show();
 
         // Set the dialog title
-        builder.setTitle("Ubicación");
+        /*builder.setTitle("Ubicación");
+        builder.setPositiveButton("Establecer", null);
+        builder.setNegativeButton("Cancelar", null);*/
+
+
+
+        AlertDialog optionDialog = builder.show();
 
 
         // Specify the list array, the items to be selected by default (null for none),
 
-        // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
+        // Vista escondida del nuevo layout para las diferentes celdas a implementar para los filtros
         View mView = getLayoutInflater().inflate(R.layout.anhadir_ubicacion_punto_partida_layout, null);
 
-        //layLatitud = mView.findViewById(R.id.layout_latitud);
-        //layLongitud = mView.findViewById(R.id.layout_longitud);
-        //textInputLatitud = mView.findViewById(R.id.text_input_latitud);
-        //textInputLongitud = mView.findViewById(R.id.text_input_longitud);
+
+
+
+        // Campos necesarios para comprobar todos los casos de error existentes
         textInputLatitud = mView.findViewById(R.id.layout_latitud);
         textInputLongitud = mView.findViewById(R.id.layout_longitud);
+        labelLatitud = mView.findViewById(R.id.labelLatitud);
+        labelLongitud = mView.findViewById(R.id.labelLongitud);
 
         buttonCancelar = mView.findViewById(R.id.btn_cancelar);
         buttonEstablecer = mView.findViewById(R.id.btn_establecer);
 
-        buttonEstablecer.setVisibility(View.GONE);
-        buttonCancelar.setVisibility(View.GONE);
+
+
+        // Se les quita visibilidad a los botones creados en la interfaz
+        //buttonEstablecer.setVisibility(View.GONE);
+        //buttonCancelar.setVisibility(View.GONE);
+
+
+        /*Button positiveButton = builder2.getButton(AlertDialog.BUTTON_POSITIVE);
+        positiveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Not Closing", Toast.LENGTH_LONG);
+            }
+        });*/
 
         /*final TextView comb = mView.findViewById(R.id.ubicacionActual);
 
@@ -296,13 +336,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }*/
 
-        /*
+        // Boton Establecer
         buttonEstablecer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!validateLatitud() | !validateLongitud()) {
                     return;
                 } else {
+
+                    latitud = textInputLatitud.getEditText().getText().toString().trim();
+                    longitud = textInputLongitud.getEditText().getText().toString().trim();
+                    coordenada = latitud + " " + longitud;
+
+                    /*
+                    try {
+                        presenterGasolineras.escrituraCoordenadasPorDefecto(coordenada, ac, FICHERO_UBICACION);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }catch (IOException ex){
+                        ex.printStackTrace();
+                    }
+                    try {
+                        coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }*/
+
                     closeDrawer(drawerLayout);
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
                     refresca();
@@ -311,23 +370,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         });
 
+        // Boton Cancelar
         buttonCancelar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //dialog.dismiss();
+                optionDialog.dismiss();
                 closeDrawer(drawerLayout);
             }
 
-        });*/
+        });
 
-
+        /*
         // Set the action buttons
         builder.setPositiveButton("Establecer", (DialogInterface dialog, int id) -> {
-
 
             // Posibles casos de error
             if (!validateLatitud() | !validateLongitud()) {
                 Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
+                dialog.cancel();
             } else {
 
                 // Se pulsa Establecer y se guardan los valores de latitud y longitud proporcionados
@@ -338,9 +398,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         });
         builder.setNegativeButton(CANCELAR, (dialog, id) -> {
-            /*dialog.dismiss();
-            closeDrawer(drawerLayout);*/
-        });
+            dialog.dismiss();
+            closeDrawer(drawerLayout);
+        });*/
 
         builder.setView(mView);
         builder.create();
@@ -348,67 +408,197 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Casos de error a la hora de introducir la latitud
-     * @return false si la longitud esta vacia y si tiene mas de 15 caracteres.
-     * Y true si todo es correcto
+     * Comprobacion de los diferentes casos de error a la hora de introducir la latitud
+     * @return false si el campo latitud esta vacio, si contiene caracteres erroneos,
+     * si tiene mas de un punto o de un guión, si tiene mas de 15 caracteres,
+     * y si la latitud no esta comprendida entre -90 y 90.
+     * Y retorna true en caso contrario.
      */
     private boolean validateLatitud() {
 
+        // Se almacena el contenido del campo latitud
         String latitud = textInputLatitud.getEditText().getText().toString().trim();
-        //double numLatitud = Double.parseDouble(textInputLatitud.getText().toString());
 
-        //if () {
+        // Se comprueba que no este vacio
         if (latitud.isEmpty()) {
             textInputLatitud.setError("La latitud no puede estar vacia");
+            labelLatitud.setTextColor(Color.RED);
             return false;
+        }
 
-        } else if (latitud.length() > 15) {
-            textInputLatitud.setError("Latitud demasiado larga");
+        // Se comprueba si existe algun caracter erroneo
+        // Solo se permiten valores entre el 0 y el 9, el punto y el guion
+        Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(latitud);
+        boolean esIncorrecto = m.find();
+
+        if (esIncorrecto) {
+            textInputLatitud.setError("Existen caracteres erróneos");
+            labelLatitud.setTextColor(Color.RED);
             return false;
+        }
+
+        // Se comprueba que solo hay una ocurrencia tanto par el punto como para el guion
+        int numPuntos = 0;
+        int numGuion = 0;
+        for(int i=0 ; i<latitud.length(); i++){
+            if(latitud.charAt(i) == '.'){
+                numPuntos++;
+            }
+
+            if(latitud.charAt(i) == '-'){
+                numGuion++;
+            }
+        }
+
+        // Solo se permite una ocurrencia del punto
+        if (numPuntos > 1) {
+            textInputLatitud.setError("Solo puede haber un punto");
+            labelLatitud.setTextColor(Color.RED);
+            return false;
+        }
+
+        // Solo se permite una ocurrencia del guion
+        if (numGuion > 1) {
+            textInputLatitud.setError("Solo puede haber un guión");
+            labelLatitud.setTextColor(Color.RED);
+            return false;
+        }
+
+        // Se comprueba que en caso de que haya un guion, este esta en la primera posicion
+        if (numGuion == 1 && latitud.charAt(0) != '-') {
+            textInputLatitud.setError("El guion tiene que ser el primer caracter");
+            labelLatitud.setTextColor(Color.RED);
+            return false;
+        }
+
         /*
-        } else if (numLatitud < -90) {
-            layLatitud.setError("La latitud debe ser mayor de -90");
+         * Una vez comprobados los casos anteriores, se puede almacenar el numero insertado (formato correcto)
+         * para las posteriores comprobaciones a realizar
+         */
+        double numLatitud = Double.parseDouble(textInputLatitud.getEditText().getText().toString());
+
+        // Se comprueba que la latitud no contenga mas de 15 caracteres
+        if (latitud.length() > 15) {
+            textInputLatitud.setError("Latitud demasiado larga");
+            labelLatitud.setTextColor(Color.RED);
             return false;
 
-        } else if (numLatitud > 90) {
-            layLatitud.setError("La latitud debe ser menor de 90");
+        // Se comprueba que la latitud sea mayor que -90
+        } else if (numLatitud < -90) {
+            textInputLatitud.setError("La latitud debe ser mayor de -90");
+            labelLatitud.setTextColor(Color.RED);
             return false;
-*/
-        } else {
+
+        // Se comprueba que la latitud sea menos que 90
+        } else if (numLatitud > 90) {
+            textInputLatitud.setError("La latitud debe ser menor de 90");
+            labelLatitud.setTextColor(Color.RED);
+            return false;
+
+        // Caso correcto
+        } else  {
             textInputLatitud.setError(null);
+            labelLatitud.setTextColor(Color.GRAY);
             return true;
         }
+
     }
 
     /**
-     * Casos de error a la hora de introducir la longitud
-     * @return false si la longitud esta vacia y si tiene mas de 15 caracteres.
-     * Y true si todo es correcto
+     * Comprobacion de los diferentes casos de error a la hora de introducir la longitud
+     * @return false si el campo longitud esta vacio, si contiene caracteres erroneos,
+     * si tiene mas de un punto o de un guión, si tiene mas de 15 caracteres,
+     * y si la longitud no esta comprendida entre -180 y 180.
+     * Y retorna true en caso contrario.
      */
     private boolean validateLongitud() {
 
+        // Se almacena el contenido del campo longitud
         String longitud = textInputLongitud.getEditText().getText().toString().trim();
-        //double numLongitud = Double.parseDouble(textInputLongitud.getText().toString());
 
-        //if (longitudInput.isEmpty()) {
+        // Se comprueba que no este vacio
         if (longitud.isEmpty()) {
             textInputLongitud.setError("La longitud no puede estar vacia");
+            labelLongitud.setTextColor(Color.RED);
             return false;
 
-        } else if (longitud.length() > 15) {
-            textInputLongitud.setError("Longitud demasiado largo");
+        }
+
+        // Se comprueba si existe algun caracter erroneo
+        // Solo se permiten valores entre el 0 y el 9, el punto y el guion
+        Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(longitud);
+        boolean esIncorrecto = m.find();
+
+        if (esIncorrecto) {
+            textInputLongitud.setError("Existen caracteres erróneos");
+            labelLongitud.setTextColor(Color.RED);
             return false;
-/*
+        }
+
+        // Se comprueba que solo hay una ocurrencia tanto par el punto como para el guion
+        int numPuntos = 0;
+        int numGuion = 0;
+        for(int i =0 ; i<longitud.length(); i++){
+            if(longitud.charAt(i) == '.'){
+                numPuntos++;
+            }
+
+            if(longitud.charAt(i) == '-'){
+                numGuion++;
+            }
+        }
+
+        // Solo se permite una ocurrencia del punto
+        if (numPuntos > 1) {
+            textInputLongitud.setError("Solo puede haber un punto");
+            labelLongitud.setTextColor(Color.RED);
+            return false;
+        }
+
+        // Solo se permite una ocurrencia del guion
+        if (numGuion > 1) {
+            textInputLongitud.setError("Solo puede haber un guión");
+            labelLongitud.setTextColor(Color.RED);
+            return false;
+        }
+
+        // Se comprueba que en caso de que haya un guion, este esta en la primera posicion
+        if (numGuion == 1 && longitud.charAt(0) != '-') {
+            textInputLongitud.setError("El guion tiene que ser el primer caracter");
+            labelLongitud.setTextColor(Color.RED);
+            return false;
+        }
+
+        /*
+         * Una vez comprobados los casos anteriores, se puede almacenar el numero insertado (formato correcto)
+         * para las posteriores comprobaciones a realizar
+         */
+        double numLongitud = Double.parseDouble(textInputLongitud.getEditText().getText().toString());
+
+        // Se comprueba que la longitud no contenga mas de 15 caracteres
+        if (longitud.length() > 15) {
+            textInputLongitud.setError("Longitud demasiado larga");
+            labelLongitud.setTextColor(Color.RED);
+            return false;
+
+        // Se comprueba que la longitud sea mayor que -180
         }  else if (numLongitud < -180) {
-            layLatitud.setError("La latitud debe ser mayor de -180");
+            textInputLongitud.setError("La latitud debe ser mayor de -180");
+            labelLongitud.setTextColor(Color.RED);
             return false;
 
+        // Se comprueba que la longitud sea menor que 180
         } else if (numLongitud > 180) {
-            layLatitud.setError("La latitud debe ser menor de 180");
+            textInputLongitud.setError("La latitud debe ser menor de 180");
+            labelLongitud.setTextColor(Color.RED);
             return false;
-*/
+
+        // Caso correcto
         } else {
             textInputLongitud.setError(null);
+            labelLongitud.setTextColor(Color.GRAY);
             return true;
         }
 

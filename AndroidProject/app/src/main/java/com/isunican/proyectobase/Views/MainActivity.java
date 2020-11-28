@@ -263,7 +263,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         builder.setNegativeButton(CANCELAR, (dialog, id) -> {
             dialog.dismiss();
-            closeDrawer(drawerLayout);
+            //closeDrawer(drawerLayout);
         });
         builder.setView(mView);
         builder.create();
@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Segunda opcion en la barra superior de la izquierda para podern anhadir una
+     * Segunda opcion en la barra superior de la izquierda para poder anhadir una
      * ubicacion como punto de partida habitual
      */
     public void clickUbicacion() {
@@ -279,29 +279,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Ubicación");
 
-
-        /*AlertDialog builder2 = new AlertDialog.Builder(this)
-                .setTitle("Ubicación")
-                .setPositiveButton("Establecer", null)
-                .setNegativeButton("Cancelar", null)
-                .show();
-
-        // Set the dialog title
-        /*builder.setTitle("Ubicación");
-        builder.setPositiveButton("Establecer", null);
-        builder.setNegativeButton("Cancelar", null);*/
-
-
-
-        AlertDialog optionDialog = builder.show();
-
-
-        // Specify the list array, the items to be selected by default (null for none),
-
         // Vista escondida del nuevo layout para las diferentes celdas a implementar para los filtros
         View mView = getLayoutInflater().inflate(R.layout.anhadir_ubicacion_punto_partida_layout, null);
-
-
+        builder.setView(mView);
+        AlertDialog dialog = builder.create();
 
 
         // Campos necesarios para comprobar todos los casos de error existentes
@@ -314,20 +295,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonEstablecer = mView.findViewById(R.id.btn_establecer);
 
 
-
-        // Se les quita visibilidad a los botones creados en la interfaz
-        //buttonEstablecer.setVisibility(View.GONE);
-        //buttonCancelar.setVisibility(View.GONE);
-
-
-        /*Button positiveButton = builder2.getButton(AlertDialog.BUTTON_POSITIVE);
-        positiveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Not Closing", Toast.LENGTH_LONG);
-            }
-        });*/
-
         /*final TextView comb = mView.findViewById(R.id.ubicacionActual);
 
         try {
@@ -335,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (IOException e) {
             e.printStackTrace();
         }*/
+
 
         // Boton Establecer
         buttonEstablecer.setOnClickListener(new View.OnClickListener() {
@@ -362,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         e.printStackTrace();
                     }*/
 
+                    dialog.dismiss();;
                     closeDrawer(drawerLayout);
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
                     refresca();
@@ -374,37 +343,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonCancelar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                optionDialog.dismiss();
-                closeDrawer(drawerLayout);
+                dialog.dismiss();
+                //closeDrawer(drawerLayout);
             }
 
         });
 
-        /*
-        // Set the action buttons
-        builder.setPositiveButton("Establecer", (DialogInterface dialog, int id) -> {
-
-            // Posibles casos de error
-            if (!validateLatitud() | !validateLongitud()) {
-                Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
-                dialog.cancel();
-            } else {
-
-                // Se pulsa Establecer y se guardan los valores de latitud y longitud proporcionados
-                closeDrawer(drawerLayout);
-                Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
-                refresca();
-            }
-
-        });
-        builder.setNegativeButton(CANCELAR, (dialog, id) -> {
-            dialog.dismiss();
-            closeDrawer(drawerLayout);
-        });*/
-
-        builder.setView(mView);
-        builder.create();
-        builder.show();
+        dialog.show();
     }
 
     /**

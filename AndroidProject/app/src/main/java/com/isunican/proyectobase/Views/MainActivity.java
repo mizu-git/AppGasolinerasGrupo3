@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     String latitud = "43.350223552917";
     String longitud = "-4.052258920907";
     String coordenada = latitud + " " + longitud;
+    String newCoordenada;
 
 
     boolean esAsc = true; //Por defecto ascendente
@@ -141,6 +142,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
+        try {
+            //Lectura inicial de las coordenadas por defecto
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+
+        } catch(Exception e) {
+            try {
+                presenterGasolineras.escrituraCoordenadaPorDefecto("43.350223552917 -4.052258920907", this, FICHERO);
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+            }catch (IOException exc){
+                exc.printStackTrace();
+            } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
+                coordenadaNoExistente.printStackTrace();
+            }
+        }
+
+        try {
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        newCoordenada = coordenada;
 
         drawerLayout = findViewById(R.id.drawer_layout);
 
@@ -258,6 +284,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     e.printStackTrace();
                 }
             }
+
+
             closeDrawer(drawerLayout);
             refresca();
         });
@@ -295,13 +323,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonEstablecer = mView.findViewById(R.id.btn_establecer);
 
 
-        /*final TextView comb = mView.findViewById(R.id.ubicacionActual);
+        final TextView comb = mView.findViewById(R.id.ubicacionPorDefecto);
 
         try {
-            comb.setText("Ubicación actual: " + presenterGasolineras.lecturaUbicacionPorDefecto(ac, FICHERO));
+            comb.setText("Ubicación actual: " + presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION));
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
 
 
         // Boton Establecer
@@ -314,25 +342,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     latitud = textInputLatitud.getEditText().getText().toString().trim();
                     longitud = textInputLongitud.getEditText().getText().toString().trim();
-                    coordenada = latitud + " " + longitud;
+                    //coordenada = latitud + " " + longitud;
+                    newCoordenada = latitud + " " + longitud;
 
-                    /*
+
                     try {
-                        presenterGasolineras.escrituraCoordenadasPorDefecto(coordenada, ac, FICHERO_UBICACION);
+                        //presenterGasolineras.escrituraCoordenadaPorDefecto(coordenada, ac, FICHERO_UBICACION);
+                        presenterGasolineras.escrituraCoordenadaPorDefecto(newCoordenada, ac, FICHERO_UBICACION);
+
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
+
                     }catch (IOException ex){
                         ex.printStackTrace();
+
+                    } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
+                    coordenadaNoExistente.printStackTrace();
                     }
+
                     try {
-                        coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
+                        //coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
+                        newCoordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
                     } catch (IOException e) {
                         e.printStackTrace();
-                    }*/
+                    }
 
-                    dialog.dismiss();;
+                    dialog.dismiss();
                     closeDrawer(drawerLayout);
-                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
                     refresca();
                 }
             }
@@ -429,15 +465,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             labelLatitud.setTextColor(Color.RED);
             return false;
 
-        // Se comprueba que la latitud sea mayor que -90
-        } else if (numLatitud < -90) {
-            textInputLatitud.setError("La latitud debe ser mayor de -90");
-            labelLatitud.setTextColor(Color.RED);
-            return false;
-
-        // Se comprueba que la latitud sea menos que 90
-        } else if (numLatitud > 90) {
-            textInputLatitud.setError("La latitud debe ser menor de 90");
+        // Se comprueba que la latitud este comprendida entre -90 y 90
+        } else if (numLatitud < -90 || numLatitud > 90) {
+            textInputLatitud.setError("La latitud debe ser entre -90 y 90");
             labelLatitud.setTextColor(Color.RED);
             return false;
 
@@ -528,15 +558,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             labelLongitud.setTextColor(Color.RED);
             return false;
 
-        // Se comprueba que la longitud sea mayor que -180
-        }  else if (numLongitud < -180) {
-            textInputLongitud.setError("La latitud debe ser mayor de -180");
-            labelLongitud.setTextColor(Color.RED);
-            return false;
-
-        // Se comprueba que la longitud sea menor que 180
-        } else if (numLongitud > 180) {
-            textInputLongitud.setError("La latitud debe ser menor de 180");
+        // Se comprueba que la longitud este comprendida entre -180 y 180
+        }  else if (numLongitud < -180 || numLongitud > 180) {
+            textInputLongitud.setError("La latitud debe ser entre -180 y 180");
             labelLongitud.setTextColor(Color.RED);
             return false;
 
@@ -771,8 +795,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     listViewGasolineras.setAdapter(adapter);
 
                     toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.datos_exito), Toast.LENGTH_LONG);
-                //} else if (!latitud.isEmpty() && !longitud.isEmpty()) {
-                    //toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
+
+                        if (coordenada != newCoordenada) {
+
+                            toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
+                            coordenada = newCoordenada;
+                        }
+
                 } else {
                     // los datos estan siendo actualizados en el servidor, por lo que no son actualmente accesibles
                     // sucede en torno a las :00 y :30 de cada hora

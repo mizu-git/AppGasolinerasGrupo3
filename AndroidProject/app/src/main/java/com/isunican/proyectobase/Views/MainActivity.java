@@ -337,7 +337,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
          * Llamada al metodo para detectar errores en tiempo de ejecucion.
          */
         detectaErroresTiempoDeEjecucion(textInputLatitud, labelLatitud);
-
         detectaErroresTiempoDeEjecucion(textInputLongitud, labelLongitud);
 
         /**
@@ -347,7 +346,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonEstablecer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!validateLatitud() | !validateLongitud()) {
+                //if (!validateLatitud() | !validateLongitud()) {
+                if ((!validateLatitudLongitud(textInputLatitud,labelLatitud) | !validateLatitudLongitud(textInputLongitud,labelLongitud))) {
                     return;
                 } else {
 
@@ -398,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     /**
-     * Comprobacion en tiempo de ejecucion en caso de introducir un caracter no valido
+     * Comprobacion en tiempo de ejecucion de los posibles casos de error
      * @param text TextInputLayout que se va a tratar en cada caso.
      * @param label label situado en la zona superior a cada campo
      */
@@ -409,37 +409,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                //validateLatitudLongitud(text, label);
+
+
                 // Se comprueba si existe algun caracter erroneo
                 // Solo se permiten valores entre el 0 y el 9, el punto y el guion
                 Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
                 Matcher m = p.matcher(s.toString());
                 boolean esIncorrecto = m.find();
 
-                if (esIncorrecto) {
+                // Se almacena el contenido del campo correspondiente
+                String latitudLongitud = text.getEditText().getText().toString().trim();
+
+                // Se comprueba que solo hay una ocurrencia tanto para el punto como para el guion
+                int numPuntos = 0;
+                int numGuion = 0;
+                for(int i=0 ; i<latitudLongitud.length(); i++){
+                    if(latitudLongitud.charAt(i) == '.'){
+                        numPuntos++;
+                    }
+
+                    if(latitudLongitud.charAt(i) == '-'){
+                        numGuion++;
+                    }
+                }
+
+                if (esIncorrecto || numPuntos > 1 || numGuion > 1) {
                     text.setError("Existen caracteres erróneos");
                     label.setTextColor(Color.RED);
                     text.getEditText().setTextColor(Color.RED);
-                } else if ( text == textInputLatitud) {
-
-                    if (validateLatitud()) {
-                        textInputLatitud.setError(null);
-                        labelLatitud.setTextColor(Color.GRAY);
-                    }
-
-                } else if ( text == textInputLongitud) {
-
-                    if (validateLongitud()) {
-                        textInputLongitud.setError(null);
-                        labelLongitud.setTextColor(Color.GRAY);
-                    }
-
-                }/* else {
-
+                } else if (numGuion == 1 && latitudLongitud.charAt(0) != '-') {  // Se comprueba que en caso de que haya un guion, este esta en la primera posicion
+                    text.setError("El guion tiene que ser el primer caracter");
+                    label.setTextColor(Color.RED);
+                    text.getEditText().setTextColor(Color.RED);
+                } else {
                     text.setError(null);
                     label.setTextColor(Color.GRAY);
                     text.getEditText().setTextColor(Color.BLACK);
-                }*/
-
+                }
             }
 
             @Override
@@ -448,72 +456,77 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Comprobacion de los diferentes casos de error a la hora de introducir la latitud
-     * @return false si el campo latitud esta vacio, si contiene caracteres erroneos,
-     * si tiene mas de un punto o de un guión, si tiene mas de 15 caracteres,
-     * y si la latitud no esta comprendida entre -90 y 90.
-     * Y retorna true en caso contrario.
+     * Comprobacion de los diferentes casos de error a la hora de introducir la latitud o la longitud
+     *
+     * @param text Text Input Layout que va a ser tratado, puede ser la Latitud o la Longitud
+     * @param label Etiqueta encima de cada campo que se va a corresponder con el text Input layout
+     *              que se este tratando, es decir, latitud o longitud
+     * @return true si ambos campos son introducidos correctamente o false en caso contrario.
      */
-    private boolean validateLatitud() {
+    private boolean validateLatitudLongitud(TextInputLayout text, TextView label ) {
 
-        // Se almacena el contenido del campo latitud
-        String latitud = textInputLatitud.getEditText().getText().toString().trim();
+        // Se almacena el contenido del campo correspondiente
+        String latitudLongitud = text.getEditText().getText().toString().trim();
 
         // Se comprueba que no este vacio
-        if (latitud.isEmpty()) {
-            textInputLatitud.setError("La latitud no puede estar vacia");
-            labelLatitud.setTextColor(Color.RED);
-            textInputLatitud.getEditText().setTextColor(Color.RED);
+        if (latitudLongitud.isEmpty()) {
+            if (text == textInputLatitud) {
+                text.setError("La latitud no puede estar vacia");
+            } else {
+                text.setError("La longitud no puede estar vacia");
+            }
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
             return false;
         }
 
         // Se comprueba si existe algun caracter erroneo
         // Solo se permiten valores entre el 0 y el 9, el punto y el guion
         Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
-        Matcher m = p.matcher(latitud);
+        Matcher m = p.matcher(latitudLongitud);
         boolean esIncorrecto = m.find();
 
         if (esIncorrecto) {
-            textInputLatitud.setError("Existen caracteres erróneos");
-            labelLatitud.setTextColor(Color.RED);
-            textInputLatitud.getEditText().setTextColor(Color.RED);
+            text.setError("Existen caracteres erróneos");
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
             return false;
         }
 
-        // Se comprueba que solo hay una ocurrencia tanto par el punto como para el guion
+        // Se comprueba que solo hay una ocurrencia tanto para el punto como para el guion
         int numPuntos = 0;
         int numGuion = 0;
-        for(int i=0 ; i<latitud.length(); i++){
-            if(latitud.charAt(i) == '.'){
+        for(int i=0 ; i<latitudLongitud.length(); i++){
+            if(latitudLongitud.charAt(i) == '.'){
                 numPuntos++;
             }
 
-            if(latitud.charAt(i) == '-'){
+            if(latitudLongitud.charAt(i) == '-'){
                 numGuion++;
             }
         }
 
         // Solo se permite una ocurrencia del punto
         if (numPuntos > 1) {
-            textInputLatitud.setError("Solo puede haber un punto");
-            labelLatitud.setTextColor(Color.RED);
-            textInputLatitud.getEditText().setTextColor(Color.RED);
+            text.setError("Solo puede haber un punto");
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
             return false;
         }
 
         // Solo se permite una ocurrencia del guion
         if (numGuion > 1) {
-            textInputLatitud.setError("Solo puede haber un guión");
-            labelLatitud.setTextColor(Color.RED);
-            textInputLatitud.getEditText().setTextColor(Color.RED);
+            text.setError("Solo puede haber un guión");
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
             return false;
         }
 
         // Se comprueba que en caso de que haya un guion, este esta en la primera posicion
-        if (numGuion == 1 && latitud.charAt(0) != '-') {
-            textInputLatitud.setError("El guion tiene que ser el primer caracter");
-            labelLatitud.setTextColor(Color.RED);
-            textInputLatitud.getEditText().setTextColor(Color.RED);
+        if (numGuion == 1 && latitudLongitud.charAt(0) != '-') {
+            text.setError("El guion tiene que ser el primer caracter");
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -521,131 +534,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
          * Una vez comprobados los casos anteriores, se puede almacenar el numero insertado (formato correcto)
          * para las posteriores comprobaciones a realizar
          */
-        double numLatitud = Double.parseDouble(textInputLatitud.getEditText().getText().toString());
-
-        // Se comprueba que la latitud no contenga mas de 15 caracteres
-        if (latitud.length() > 15) {
-            textInputLatitud.setError("Latitud demasiado larga");
-            labelLatitud.setTextColor(Color.RED);
-            textInputLatitud.getEditText().setTextColor(Color.RED);
-            return false;
-
-        // Se comprueba que la latitud este comprendida entre -90 y 90
-        } else if (numLatitud < -90 || numLatitud > 90) {
-            textInputLatitud.setError("La latitud debe ser entre -90 y 90");
-            labelLatitud.setTextColor(Color.RED);
-            textInputLatitud.getEditText().setTextColor(Color.RED);
-            return false;
-
-        // Caso correcto
-        } else  {
-            textInputLatitud.setError(null);
-            labelLatitud.setTextColor(Color.GRAY);
-            textInputLatitud.getEditText().setTextColor(Color.BLACK);
-            return true;
-        }
-
-    }
-
-    /**
-     * Comprobacion de los diferentes casos de error a la hora de introducir la longitud
-     * @return false si el campo longitud esta vacio, si contiene caracteres erroneos,
-     * si tiene mas de un punto o de un guión, si tiene mas de 15 caracteres,
-     * y si la longitud no esta comprendida entre -180 y 180.
-     * Y retorna true en caso contrario.
-     */
-    private boolean validateLongitud() {
-
-        // Se almacena el contenido del campo longitud
-        String longitud = textInputLongitud.getEditText().getText().toString().trim();
-
-        // Se comprueba que no este vacio
-        if (longitud.isEmpty()) {
-            textInputLongitud.setError("La longitud no puede estar vacia");
-            labelLongitud.setTextColor(Color.RED);
-            textInputLongitud.getEditText().setTextColor(Color.RED);
-            return false;
-
-        }
-
-        // Se comprueba si existe algun caracter erroneo
-        // Solo se permiten valores entre el 0 y el 9, el punto y el guion
-        Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
-        Matcher m = p.matcher(longitud);
-        boolean esIncorrecto = m.find();
-
-        if (esIncorrecto) {
-            textInputLongitud.setError("Existen caracteres erróneos");
-            labelLongitud.setTextColor(Color.RED);
-            textInputLongitud.getEditText().setTextColor(Color.RED);
-            return false;
-        }
-
-        // Se comprueba que solo hay una ocurrencia tanto par el punto como para el guion
-        int numPuntos = 0;
-        int numGuion = 0;
-        for(int i =0 ; i<longitud.length(); i++){
-            if(longitud.charAt(i) == '.'){
-                numPuntos++;
-            }
-
-            if(longitud.charAt(i) == '-'){
-                numGuion++;
-            }
-        }
-
-        // Solo se permite una ocurrencia del punto
-        if (numPuntos > 1) {
-            textInputLongitud.setError("Solo puede haber un punto");
-            labelLongitud.setTextColor(Color.RED);
-            textInputLongitud.getEditText().setTextColor(Color.RED);
-            return false;
-        }
-
-        // Solo se permite una ocurrencia del guion
-        if (numGuion > 1) {
-            textInputLongitud.setError("Solo puede haber un guión");
-            labelLongitud.setTextColor(Color.RED);
-            textInputLongitud.getEditText().setTextColor(Color.RED);
-            return false;
-        }
-
-        // Se comprueba que en caso de que haya un guion, este esta en la primera posicion
-        if (numGuion == 1 && longitud.charAt(0) != '-') {
-            textInputLongitud.setError("El guion tiene que ser el primer caracter");
-            labelLongitud.setTextColor(Color.RED);
-            textInputLongitud.getEditText().setTextColor(Color.RED);
-            return false;
-        }
-
-        /*
-         * Una vez comprobados los casos anteriores, se puede almacenar el numero insertado (formato correcto)
-         * para las posteriores comprobaciones a realizar
-         */
-        double numLongitud = Double.parseDouble(textInputLongitud.getEditText().getText().toString());
-
-        // Se comprueba que la longitud no contenga mas de 15 caracteres
-        if (longitud.length() > 15) {
-            textInputLongitud.setError("Longitud demasiado larga");
-            labelLongitud.setTextColor(Color.RED);
-            textInputLongitud.getEditText().setTextColor(Color.RED);
-            return false;
-
-        // Se comprueba que la longitud este comprendida entre -180 y 180
-        }  else if (numLongitud < -180 || numLongitud > 180) {
-            textInputLongitud.setError("La latitud debe ser entre -180 y 180");
-            labelLongitud.setTextColor(Color.RED);
-            textInputLongitud.getEditText().setTextColor(Color.RED);
-            return false;
-
-        // Caso correcto
+        double numLatitudLongitud;
+        if (!text.getEditText().getText().toString().equals("-")) {
+            numLatitudLongitud = Double.parseDouble(text.getEditText().getText().toString());
         } else {
-            textInputLongitud.setError(null);
-            labelLongitud.setTextColor(Color.GRAY);
-            textInputLongitud.getEditText().setTextColor(Color.BLACK);
-            return true;
+            numLatitudLongitud = 0;
         }
 
+        // Se comprueba que la latitud/longitud no contenga mas de 15 caracteres
+        if (latitudLongitud.length() > 15) {
+            if (text == textInputLatitud) {
+                text.setError("Latitud demasiado larga");
+            } else {
+                text.setError("Longitud demasiado larga");
+            }
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
+            return false;
+        }
+
+        // Se comprueba que en caso de la latitud esta este comprendida entre -90 y 90
+        if (text == textInputLatitud) {
+            if (numLatitudLongitud < -90 || numLatitudLongitud > 90) {
+                text.setError("La latitud debe ser entre -90 y 90");
+                label.setTextColor(Color.RED);
+                text.getEditText().setTextColor(Color.RED);
+                return false;
+            }
+        // Se comprueba que en caso de la longitud este este comprendida entre -180 y 180
+        } else {
+            if (numLatitudLongitud < -180 || numLatitudLongitud > 180) {
+                text.setError("La longitud debe ser entre -180 y 180");
+                label.setTextColor(Color.RED);
+                text.getEditText().setTextColor(Color.RED);
+                return false;
+            }
+        }
+
+        // Caso correcto
+        text.setError(null);
+        label.setTextColor(Color.GRAY);
+        text.getEditText().setTextColor(Color.BLACK);
+        return true;
     }
 
 

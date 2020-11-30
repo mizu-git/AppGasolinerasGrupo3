@@ -20,7 +20,10 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -291,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         builder.setNegativeButton(CANCELAR, (dialog, id) -> {
             dialog.dismiss();
-            //closeDrawer(drawerLayout);
+
         });
         builder.setView(mView);
         builder.create();
@@ -322,7 +325,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonCancelar = mView.findViewById(R.id.btn_cancelar);
         buttonEstablecer = mView.findViewById(R.id.btn_establecer);
 
-
         final TextView comb = mView.findViewById(R.id.ubicacionPorDefecto);
 
         try {
@@ -331,7 +333,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
 
+        /**
+         * Llamada al metodo para detectar errores en tiempo de ejecucion.
+         */
+        detectaErroresTiempoDeEjecucion(textInputLatitud, labelLatitud);
 
+        detectaErroresTiempoDeEjecucion(textInputLongitud, labelLongitud);
+
+        /**
+         * Botones
+         */
         // Boton Establecer
         buttonEstablecer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -342,12 +353,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     latitud = textInputLatitud.getEditText().getText().toString().trim();
                     longitud = textInputLongitud.getEditText().getText().toString().trim();
-                    //coordenada = latitud + " " + longitud;
+
                     newCoordenada = latitud + " " + longitud;
 
 
                     try {
-                        //presenterGasolineras.escrituraCoordenadaPorDefecto(coordenada, ac, FICHERO_UBICACION);
                         presenterGasolineras.escrituraCoordenadaPorDefecto(newCoordenada, ac, FICHERO_UBICACION);
 
                     } catch (FileNotFoundException e) {
@@ -361,8 +371,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
 
                     try {
-                        //coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
                         newCoordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -380,12 +390,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
-                //closeDrawer(drawerLayout);
             }
-
         });
 
         dialog.show();
+    }
+
+
+    /**
+     * Comprobacion en tiempo de ejecucion en caso de introducir un caracter no valido
+     * @param text TextInputLayout que se va a tratar en cada caso.
+     * @param label label situado en la zona superior a cada campo
+     */
+    public void detectaErroresTiempoDeEjecucion(TextInputLayout text, TextView label ) {
+        text.getEditText().addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Se comprueba si existe algun caracter erroneo
+                // Solo se permiten valores entre el 0 y el 9, el punto y el guion
+                Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
+                Matcher m = p.matcher(s.toString());
+                boolean esIncorrecto = m.find();
+
+                if (esIncorrecto) {
+                    text.setError("Existen caracteres erróneos");
+                    label.setTextColor(Color.RED);
+                    text.getEditText().setTextColor(Color.RED);
+                } else if ( text == textInputLatitud) {
+
+                    if (validateLatitud()) {
+                        textInputLatitud.setError(null);
+                        labelLatitud.setTextColor(Color.GRAY);
+                    }
+
+                } else if ( text == textInputLongitud) {
+
+                    if (validateLongitud()) {
+                        textInputLongitud.setError(null);
+                        labelLongitud.setTextColor(Color.GRAY);
+                    }
+
+                }/* else {
+
+                    text.setError(null);
+                    label.setTextColor(Color.GRAY);
+                    text.getEditText().setTextColor(Color.BLACK);
+                }*/
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
     }
 
     /**
@@ -404,6 +463,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (latitud.isEmpty()) {
             textInputLatitud.setError("La latitud no puede estar vacia");
             labelLatitud.setTextColor(Color.RED);
+            textInputLatitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -416,6 +476,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (esIncorrecto) {
             textInputLatitud.setError("Existen caracteres erróneos");
             labelLatitud.setTextColor(Color.RED);
+            textInputLatitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -436,6 +497,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (numPuntos > 1) {
             textInputLatitud.setError("Solo puede haber un punto");
             labelLatitud.setTextColor(Color.RED);
+            textInputLatitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -443,6 +505,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (numGuion > 1) {
             textInputLatitud.setError("Solo puede haber un guión");
             labelLatitud.setTextColor(Color.RED);
+            textInputLatitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -450,6 +513,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (numGuion == 1 && latitud.charAt(0) != '-') {
             textInputLatitud.setError("El guion tiene que ser el primer caracter");
             labelLatitud.setTextColor(Color.RED);
+            textInputLatitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -463,18 +527,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (latitud.length() > 15) {
             textInputLatitud.setError("Latitud demasiado larga");
             labelLatitud.setTextColor(Color.RED);
+            textInputLatitud.getEditText().setTextColor(Color.RED);
             return false;
 
         // Se comprueba que la latitud este comprendida entre -90 y 90
         } else if (numLatitud < -90 || numLatitud > 90) {
             textInputLatitud.setError("La latitud debe ser entre -90 y 90");
             labelLatitud.setTextColor(Color.RED);
+            textInputLatitud.getEditText().setTextColor(Color.RED);
             return false;
 
         // Caso correcto
         } else  {
             textInputLatitud.setError(null);
             labelLatitud.setTextColor(Color.GRAY);
+            textInputLatitud.getEditText().setTextColor(Color.BLACK);
             return true;
         }
 
@@ -496,6 +563,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (longitud.isEmpty()) {
             textInputLongitud.setError("La longitud no puede estar vacia");
             labelLongitud.setTextColor(Color.RED);
+            textInputLongitud.getEditText().setTextColor(Color.RED);
             return false;
 
         }
@@ -509,6 +577,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (esIncorrecto) {
             textInputLongitud.setError("Existen caracteres erróneos");
             labelLongitud.setTextColor(Color.RED);
+            textInputLongitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -529,6 +598,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (numPuntos > 1) {
             textInputLongitud.setError("Solo puede haber un punto");
             labelLongitud.setTextColor(Color.RED);
+            textInputLongitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -536,6 +606,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (numGuion > 1) {
             textInputLongitud.setError("Solo puede haber un guión");
             labelLongitud.setTextColor(Color.RED);
+            textInputLongitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -543,6 +614,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (numGuion == 1 && longitud.charAt(0) != '-') {
             textInputLongitud.setError("El guion tiene que ser el primer caracter");
             labelLongitud.setTextColor(Color.RED);
+            textInputLongitud.getEditText().setTextColor(Color.RED);
             return false;
         }
 
@@ -556,18 +628,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (longitud.length() > 15) {
             textInputLongitud.setError("Longitud demasiado larga");
             labelLongitud.setTextColor(Color.RED);
+            textInputLongitud.getEditText().setTextColor(Color.RED);
             return false;
 
         // Se comprueba que la longitud este comprendida entre -180 y 180
         }  else if (numLongitud < -180 || numLongitud > 180) {
             textInputLongitud.setError("La latitud debe ser entre -180 y 180");
             labelLongitud.setTextColor(Color.RED);
+            textInputLongitud.getEditText().setTextColor(Color.RED);
             return false;
 
         // Caso correcto
         } else {
             textInputLongitud.setError(null);
             labelLongitud.setTextColor(Color.GRAY);
+            textInputLongitud.getEditText().setTextColor(Color.BLACK);
             return true;
         }
 

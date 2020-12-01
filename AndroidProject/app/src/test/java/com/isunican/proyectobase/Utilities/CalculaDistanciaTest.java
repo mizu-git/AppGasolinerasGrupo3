@@ -23,9 +23,9 @@ public class CalculaDistanciaTest {
        }
     @Test
     public void distanciaEntreDosCoordenadasTest(){
-        /*
+
         //UT.2A
-        assertEquals(156829.328125, CalculaDistancia.distanciaEntreDosCoordenadas(3,3,2,2), 0.001);
+        assertEquals(62.6574, CalculaDistancia.distanciaEntreDosCoordenadas(43.353139713292,-4.062254446255398,43.352619991145394,-4.062554545912644), 0.001);
         //UT.2B
         assertEquals(0, CalculaDistancia.distanciaEntreDosCoordenadas(43,-4,43,-4), 0.001);
         //UT.2C
@@ -57,7 +57,7 @@ public class CalculaDistanciaTest {
 
         }
 
-         */
-        assertTrue(1==1);
+
+
     }
 }

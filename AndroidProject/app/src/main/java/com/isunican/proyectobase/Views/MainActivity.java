@@ -118,10 +118,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /**NO BORRAR!!!!*/
-        /*ActivityCompat.requestPermissions(this,
+        ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                200);*/
+                200);
 
         //Localizacion
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -325,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     *
+     * Se ejecuta cuando se pulsa la opcion de ordenacion en la aplicacion
      */
     private void clickOrdenacion() {
         //comienzo de ordenar
@@ -369,9 +368,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             //Se coloca el elemento seleccionado del spinner en la primera posicion
-            String operacionSeleccionada = operacionesOrdenacion.get(posicionSeleccionada[0]);
-            operacionesOrdenacion.remove(posicionSeleccionada[0]);
-            operacionesOrdenacion.addFirst(operacionSeleccionada);
+            int posicion = posicionSeleccionada[0];
+            if(posicion != 0){
+                moverPrincipioOpcionSeleccionada(posicion);
+            }
             refresca();
         });
 
@@ -381,6 +381,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.create();
         builder.show();
     }
+
+    /**
+     * Mueve el elemento en la poscion indicada de la lista operacionesOrdenacion
+     * al pincipio.
+     * @param posicion posicion del elemento que se desea mover.
+     */
+    private void moverPrincipioOpcionSeleccionada(int posicion){
+        String operacionSeleccionada = operacionesOrdenacion.get(posicion);
+        operacionesOrdenacion.remove(posicion);
+        operacionesOrdenacion.addFirst(operacionSeleccionada);
+    }
+
 
     /**
      * @param drawerLayout

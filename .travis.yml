@@ -61,7 +61,7 @@
      - ./gradlew clean jacocoTestReport sonarqube
      - mkdir -p build/reports
      - android list targets
-     - echo no | android create avd --force -n test -t "android-"$ANDROID_EMULATOR_LEVEL --abi $default/armeabi-v7a #--tag $ANDROID_TAG
+     - echo no | android create avd --force -n test -t "android-"$ANDROID_EMULATOR_LEVEL --abi "google_apis/armeabi-v7a" #--tag $ANDROID_TAG
      - emulator -avd test -no-window &
      #  - ./gradlew dependencyCheckAnalyze
      #- ./gradlew assembleDebugAndroidTest -PdisablePreDex --continue --stacktrace

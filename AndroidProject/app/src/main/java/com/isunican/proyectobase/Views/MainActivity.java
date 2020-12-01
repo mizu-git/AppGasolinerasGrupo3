@@ -346,7 +346,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonEstablecer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //if (!validateLatitud() | !validateLongitud()) {
                 if ((!validateLatitudLongitud(textInputLatitud,labelLatitud) | !validateLatitudLongitud(textInputLongitud,labelLongitud))) {
                     return;
                 } else {
@@ -410,9 +409,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
-                //validateLatitudLongitud(text, label);
-
-
                 // Se comprueba si existe algun caracter erroneo
                 // Solo se permiten valores entre el 0 y el 9, el punto y el guion
                 Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
@@ -420,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 boolean esIncorrecto = m.find();
 
                 // Se almacena el contenido del campo correspondiente
-                String latitudLongitud = text.getEditText().getText().toString().trim();
+                String latitudLongitud = s.toString().trim();
 
                 // Se comprueba que solo hay una ocurrencia tanto para el punto como para el guion
                 int numPuntos = 0;
@@ -444,10 +440,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     label.setTextColor(Color.RED);
                     text.getEditText().setTextColor(Color.RED);
                 } else {
-                    text.setError(null);
-                    label.setTextColor(Color.GRAY);
-                    text.getEditText().setTextColor(Color.BLACK);
+
+                    if (latitudLongitud.length() > 15) {
+                        label.setTextColor(Color.RED);
+                        text.getEditText().setTextColor(Color.RED);
+                    } else if (latitudLongitud.length() > 1) {
+                        text.setError(null);
+                        label.setTextColor(Color.GRAY);
+                        text.getEditText().setTextColor(Color.BLACK);
+                    }
                 }
+
             }
 
             @Override

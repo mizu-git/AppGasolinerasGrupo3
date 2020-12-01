@@ -38,7 +38,7 @@ public class ConsultarInformacionGasolineraUITest {
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
     @Rule
     public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION);
-/*
+
     @Before
     public void setUp(){
         // Se pulsa el boton para acceder a los Filtros.
@@ -50,22 +50,21 @@ public class ConsultarInformacionGasolineraUITest {
                 is("Gasóleo A"))).inRoot(isPlatformPopup()).perform(click());
         // Se pulsa el botón Aceptar dentro del menú desplegable
         onView(withText("Aceptar")).perform(click());
-    }*/
+    }
 
     @Test
-    public void gasolineraTest(){
-/*
-//      ENTRANDO A LA VISTA
+    public void gasolineraTest() {
+
+        //ENTRANDO A LA VISTA
         onData(anything()).inAdapterView(withId(R.id.listViewGasolineras)).atPosition(0).perform(click());
         ListView ltmp = mActivityTestRule.getActivity().findViewById(R.id.listViewGasolineras);
-        Gasolinera g=  ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
+        Gasolinera g = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
 
 
-
-//comprobando datos de una gasolinera con gasoleo A
+        //comprobando datos de una gasolinera con gasoleo A
         onView(withId(R.id.txtNomGasolinera)).check(matches(withText(g.getRotulo())));
         onView(withId(R.id.txtTipoGasolina)).check(matches(withText("Gasóleo A")));
-        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getGasoleoA()+"€")));
+        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getGasoleoA() + "€")));
         onView(withId(R.id.txtDireccion)).check(matches(withText(g.getDireccion())));
         pressBack();
         //comprobando datos de una gasolinera con gasolina 95
@@ -74,13 +73,13 @@ public class ConsultarInformacionGasolineraUITest {
         onView(withId(R.id.spinner)).perform(click());
         onData(allOf(is(instanceOf(String.class)),
                 is("Gasolina 95"))).inRoot(isPlatformPopup()).perform(click());
-            onView(withText("Aceptar")).perform(click());
+        onView(withText("Aceptar")).perform(click());
         onData(anything()).inAdapterView(withId(R.id.listViewGasolineras)).atPosition(0).perform(click());
         ltmp = mActivityTestRule.getActivity().findViewById(R.id.listViewGasolineras);
-         g=  ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
+        g = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         onView(withId(R.id.txtNomGasolinera)).check(matches(withText(g.getRotulo())));
         onView(withId(R.id.txtTipoGasolina)).check(matches(withText("Gasolina 95")));
-        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getGasolina95()+"€")));
+        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getGasolina95() + "€")));
         onView(withId(R.id.txtDireccion)).check(matches(withText(g.getDireccion())));
         pressBack();
 
@@ -92,10 +91,10 @@ public class ConsultarInformacionGasolineraUITest {
         onView(withText("Aceptar")).perform(click());
         onData(anything()).inAdapterView(withId(R.id.listViewGasolineras)).atPosition(0).perform(click());
         ltmp = mActivityTestRule.getActivity().findViewById(R.id.listViewGasolineras);
-        g=  ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
+        g = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         onView(withId(R.id.txtNomGasolinera)).check(matches(withText(g.getRotulo())));
         onView(withId(R.id.txtTipoGasolina)).check(matches(withText("Gasolina 98")));
-        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getGasolina98()+"€")));
+        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getGasolina98() + "€")));
         onView(withId(R.id.txtDireccion)).check(matches(withText(g.getDireccion())));
         pressBack();
         //comprobando datos de una gasolinera con biodiesel
@@ -106,10 +105,10 @@ public class ConsultarInformacionGasolineraUITest {
         onView(withText("Aceptar")).perform(click());
         onData(anything()).inAdapterView(withId(R.id.listViewGasolineras)).atPosition(0).perform(click());
         ltmp = mActivityTestRule.getActivity().findViewById(R.id.listViewGasolineras);
-        g=  ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
+        g = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         onView(withId(R.id.txtNomGasolinera)).check(matches(withText(g.getRotulo())));
         onView(withId(R.id.txtTipoGasolina)).check(matches(withText("Biodiésel")));
-        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getBiodiesel()+"€")));
+        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getBiodiesel() + "€")));
         onView(withId(R.id.txtDireccion)).check(matches(withText(g.getDireccion())));
         pressBack();
         //comprobando datos de una gasolinera con premium
@@ -120,13 +119,12 @@ public class ConsultarInformacionGasolineraUITest {
         onView(withText("Aceptar")).perform(click());
         onData(anything()).inAdapterView(withId(R.id.listViewGasolineras)).atPosition(0).perform(click());
         ltmp = mActivityTestRule.getActivity().findViewById(R.id.listViewGasolineras);
-        g=  ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
+        g = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         onView(withId(R.id.txtNomGasolinera)).check(matches(withText(g.getRotulo())));
         onView(withId(R.id.txtTipoGasolina)).check(matches(withText("Gasóleo Premium")));
-        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getGasoleoPremium()+"€")));
+        onView(withId(R.id.txtPrecioGasolina)).check(matches(withText(g.getGasoleoPremium() + "€")));
         onView(withId(R.id.txtDireccion)).check(matches(withText(g.getDireccion())));
-        pressBack();*/
-        assertTrue(1==1);
+        pressBack();
     }
 
 }

@@ -66,12 +66,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String DRAWABLE = "drawable";
     private static final String FICHERO = "datos.txt";
 
+    private static final String DEBUG = "DEBUG";
 
     //laltitud y longitud de la ubicacion del usuario
     public double latitud;
     public double longitud;
 
-    //El presenter
+    // El presenter
     private PresenterGasolineras presenterGasolineras;
 
     // Vista de lista y adaptador para cargar datos en ella
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /*Variables para modificar filtros y ordenaciones*/
     //orden ascendente por defecto
-    private String id_iconoOrden = FLECHA_ARRIBA;
+    private String idIconoOrden = FLECHA_ARRIBA;
     private String criterioOrdenacion = ORDEN_PRECIO;
     private String tipoCombustible = "Gasóleo A"; //Por defecto
     private boolean esAsc = true; //Por defecto ascendente
@@ -218,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         iconoOrden.setOnClickListener(this);
 
         //Valores por defecto cuando inicia la aplicacion
-        iconoOrden.setImageResource(getResources().getIdentifier(id_iconoOrden,
+        iconoOrden.setImageResource(getResources().getIdentifier(idIconoOrden,
                 DRAWABLE, getPackageName()));
         buttonOrden.setText(getResources().getString(R.string.precio));
 
@@ -387,6 +388,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+                // No es necesario realizar nada
             }
         });
 
@@ -624,6 +626,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (Boolean.TRUE.equals(res)) {
                 //Recorrer el array adapter para que no muestre las gasolineras con precios negativos
                 presenterGasolineras.eliminaGasolinerasConPrecioNegativo(tipoCombustible);
+
                 //ordenacion
                 if (criterioOrdenacion.equals(ORDEN_PRECIO)) {
                     presenterGasolineras.ordenarGasolineras(esAsc, tipoCombustible);

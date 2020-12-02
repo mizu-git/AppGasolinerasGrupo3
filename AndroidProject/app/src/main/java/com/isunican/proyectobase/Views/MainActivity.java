@@ -1,16 +1,13 @@
 package com.isunican.proyectobase.Views;
 
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.isunican.proyectobase.Presenter.*;
 import com.isunican.proyectobase.Model.*;
 import com.isunican.proyectobase.R;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -36,7 +33,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -292,10 +288,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             closeDrawer(drawerLayout);
             refresca();
         });
-        builder.setNegativeButton(CANCELAR, (dialog, id) -> {
-            dialog.dismiss();
-
-        });
+        builder.setNegativeButton(CANCELAR, (dialog, id) -> dialog.dismiss());
         builder.setView(mView);
         builder.create();
         builder.show();
@@ -343,54 +336,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
          * Botones
          */
         // Boton Establecer
-        buttonEstablecer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if ((!validateLatitudLongitud(textInputLatitud,labelLatitud) | !validateLatitudLongitud(textInputLongitud,labelLongitud))) {
-                    return;
-                } else {
+        buttonEstablecer.setOnClickListener(v -> {
+            if ((!validateLatitudLongitud(textInputLatitud,labelLatitud) || !validateLatitudLongitud(textInputLongitud,labelLongitud))) {
+                return;
+            } else {
 
-                    latitud = textInputLatitud.getEditText().getText().toString().trim();
-                    longitud = textInputLongitud.getEditText().getText().toString().trim();
+                latitud = textInputLatitud.getEditText().getText().toString().trim();
+                longitud = textInputLongitud.getEditText().getText().toString().trim();
 
-                    newCoordenada = latitud + " " + longitud;
+                newCoordenada = latitud + " " + longitud;
 
 
-                    try {
-                        presenterGasolineras.escrituraCoordenadaPorDefecto(newCoordenada, ac, FICHERO_UBICACION);
+                try {
+                    presenterGasolineras.escrituraCoordenadaPorDefecto(newCoordenada, ac, FICHERO_UBICACION);
 
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
 
-                    }catch (IOException ex){
-                        ex.printStackTrace();
+                }catch (IOException ex){
+                    ex.printStackTrace();
 
-                    } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
-                    coordenadaNoExistente.printStackTrace();
-                    }
-
-                    try {
-                        newCoordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    dialog.dismiss();
-                    closeDrawer(drawerLayout);
-                    refresca();
+                } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
+                coordenadaNoExistente.printStackTrace();
                 }
-            }
 
+                try {
+                    newCoordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                dialog.dismiss();
+                closeDrawer(drawerLayout);
+                refresca();
+            }
         });
 
         // Boton Cancelar
-        buttonCancelar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        buttonCancelar.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }
@@ -404,7 +388,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void detectaErroresTiempoDeEjecucion(TextInputLayout text, TextView label ) {
         text.getEditText().addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No se hace nada ya que no se pide corregir el campo antes de escribir
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -454,7 +440,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void afterTextChanged(Editable s) { }
+            public void afterTextChanged(Editable s) {
+                // No se hace nada ya que no se pide corregir el campo despues de escribir
+            }
         });
     }
 
@@ -804,7 +792,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.datos_exito), Toast.LENGTH_LONG);
 
-                        if (coordenada != newCoordenada) {
+                        if (!coordenada.equals(newCoordenada)) {
 
                             toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
                             coordenada = newCoordenada;

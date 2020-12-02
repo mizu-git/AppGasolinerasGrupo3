@@ -1,39 +1,38 @@
 package com.isunican.proyectobase.Views;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.isunican.proyectobase.Presenter.*;
 import com.isunican.proyectobase.Model.*;
 import com.isunican.proyectobase.R;
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
-
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -68,9 +67,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String FICHERO = "datos.txt";
 
 
-    //Coordenadas de la ubicacion actual
-    public double latitud = 0;
-    public double longitud = 0;
+    //laltitud y longitud de la ubicacion del usuario
+    public double latitud;
+    public double longitud;
 
     //El presenter
     private PresenterGasolineras presenterGasolineras;
@@ -103,8 +102,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Activity ac = this;
 
-    //
+    //API's que se utilizan para conocer la ubicacion del usuario
     private FusedLocationProviderClient fusedLocationProviderClient;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+
+    //API que se utiliza para guardar la ultima ubicacion conocidad del usuario
+    private SharedPreferences sharedpreferences;
 
     /**
      * onCreate
@@ -118,13 +122,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Se solicitan los permison de ubicacion al usuario
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                200);
+                99);
 
         //Localizacion
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        //Se cargan la latitud y longitud por defecto, o las ultimas conocidad de la ultima vez que
+        //que el usuario utilizo la aplicacion
+        sharedpreferences = this.getPreferences(Context.MODE_PRIVATE);
+        latitud = Double.parseDouble(sharedpreferences.getString("latitud", "0"));
+        longitud = Double.parseDouble(sharedpreferences.getString("longitud", "0"));
 
+
+        //Se iniciliazan los servicios de localizacion para obtener la ubicacion del usuario
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        //Se actualizara la ubicacion del usuario cada 10 segundos
+        locationRequest.setInterval(10000);
+
+        //Listener de los cambios de ubicacion
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
+                        latitud = location.getLatitude();
+                        longitud = location.getLongitude();
+                    }
+                }
+            }
+        };
+
+        //Se inicializa el presenter de las gasolineras
         this.presenterGasolineras = new PresenterGasolineras();
 
         try {
@@ -190,6 +224,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Se cargan las opciones de ordenacion en la linked list que inyectaremos al spinner correspondiente
         Collections.addAll(operacionesOrdenacion, getResources().getStringArray(R.array.opcionesOrden));
+
+
     }
 
     public void clickMenu() {
@@ -369,7 +405,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             //Se coloca el elemento seleccionado del spinner en la primera posicion
             int posicion = posicionSeleccionada[0];
-            if(posicion != 0){
+            if (posicion != 0) {
                 moverPrincipioOpcionSeleccionada(posicion);
             }
             refresca();
@@ -385,9 +421,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * Mueve el elemento en la poscion indicada de la lista operacionesOrdenacion
      * al pincipio.
+     *
      * @param posicion posicion del elemento que se desea mover.
      */
-    private void moverPrincipioOpcionSeleccionada(int posicion){
+    private void moverPrincipioOpcionSeleccionada(int posicion) {
         String operacionSeleccionada = operacionesOrdenacion.get(posicion);
         operacionesOrdenacion.remove(posicion);
         operacionesOrdenacion.addFirst(operacionSeleccionada);
@@ -401,7 +438,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startLocationUpdates();
+    }
+
     /**
+     * Inicializa las actualizaciones de la ubicacion del usuario
+     */
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.v("DEBUG", "Se ha ejecutado el onPause");
+        closeDrawer(drawerLayout);
+
+        //Cuando se pare la aplicacion se guarda la ultima ubiucacion conocida
+        //del usuario
+        guardarUltimaUbicacion();
+        //Se paran las actualizaciones de ubicacion
+        stopLocationUpdates();
+    }
+
+    /**
+     * Cierra la barra lateral del drawer Layout.
      * @param drawerLayout
      */
     private static void closeDrawer(DrawerLayout drawerLayout) {
@@ -411,10 +478,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        closeDrawer(drawerLayout);
+    /**
+     * Guarda la latitud y longitud actuales del usuario para que puedan
+     * ser accedidas mas adelante si se necesitan.
+     */
+    private void guardarUltimaUbicacion() {
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString("latitud", Double.toString(latitud));
+        editor.putString("longitud", Double.toString(longitud));
+        editor.commit();
+    }
+
+    /**
+     * Detiene las actulkizaciones de la ubicacion del usuario.
+     */
+    private void stopLocationUpdates() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
     /**
@@ -545,24 +624,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (Boolean.TRUE.equals(res)) {
                 //Recorrer el array adapter para que no muestre las gasolineras con precios negativos
                 presenterGasolineras.eliminaGasolinerasConPrecioNegativo(tipoCombustible);
-                if (ActivityCompat.checkSelfPermission(this.activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    Log.v("DEBUG", "Permiso Ubicacion Garantizado");
-                    fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            Log.v("DEBUG", "Ha llegado a location");
-                            if (location != null) {
-                                Log.v("DEBUG", "location no es null");
-                                latitud = location.getLatitude();
-                                longitud = location.getLongitude();
-                                Log.v("DEBUG", Double.toString(latitud));
-                                Log.v("DEBUG", Double.toString(longitud));
-                            }
-                        }
-                    });
-                } else {
-                    Log.v("DEBUG", "Permiso Ubicacion NO Garantizado");
-                }
                 //ordenacion
                 if (criterioOrdenacion.equals(ORDEN_PRECIO)) {
                     presenterGasolineras.ordenarGasolineras(esAsc, tipoCombustible);
@@ -688,7 +749,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             double distanciaKm = presenterGasolineras.getDistancia(latitud, longitud, gasolinera);
 
-            distancia.setText(distanciaKm + "Km");
+            distancia.setText(String.format("%.2f", distanciaKm) + "Km");
             // Se carga el icono
             cargaIcono(gasolinera, logo);
 

@@ -3,14 +3,17 @@ package com.isunican.proyectobase.Views;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.textfield.TextInputLayout;
 import com.isunican.proyectobase.Presenter.*;
 import com.isunican.proyectobase.Model.*;
 import com.isunican.proyectobase.R;
 
 import android.Manifest;
+ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -25,7 +28,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
+
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 
 import java.io.FileNotFoundException;
@@ -35,12 +41,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 import android.util.Log;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -66,11 +76,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String ORDEN_DISTANCIA = "Distancia";
     private static final String DRAWABLE = "drawable";
     private static final String FICHERO = "datos.txt";
-
+    public static final String CANCELAR = "Cancelar";
+    public static final String FICHERO_UBICACION = "datosUbicacion.txt";
 
     //Coordenadas de la ubicacion actual
-    public double latitud = 0;
-    public double longitud = 0;
+    public double numLatitud = 0;
+    public double numLongitud = 0;
 
     //El presenter
     private PresenterGasolineras presenterGasolineras;
@@ -88,6 +99,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView menu;
     private Button buttonConfig;
     private ImageView iconoOrden;
+    Button buttonUbicacion;
+
+    TextInputLayout textInputLatitud;
+    TextInputLayout textInputLongitud;
+    TextView labelLongitud;
+    TextView labelLatitud;
+    Button buttonCancelar;
+    Button buttonEstablecer;
 
 
     //DRAWER LAYOUT
@@ -101,7 +120,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean esAsc = true; //Por defecto ascendente
     private LinkedList<String> operacionesOrdenacion = new LinkedList<>();
 
-    private Activity ac = this;
+
+    // Coordenadas por defecto
+    String latitud = "43.350223552917";
+    String longitud = "-4.052258920907";
+    String coordenada = latitud + " " + longitud;
+    String newCoordenada;
+
+
+
+    Activity ac = this;
 
     //
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -151,6 +179,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.toString();
         }
 
+
+        try {
+            //Lectura inicial de las coordenadas por defecto
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+
+        } catch(Exception e) {
+            try {
+                presenterGasolineras.escrituraCoordenadaPorDefecto("43.350223552917 -4.052258920907", this, FICHERO);
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+            }catch (IOException exc){
+                exc.printStackTrace();
+            } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
+                coordenadaNoExistente.printStackTrace();
+            }
+        }
+
+        try {
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        newCoordenada = coordenada;
+
         drawerLayout = findViewById(R.id.drawer_layout);
 
         // Muestra el logo en el actionBar
@@ -176,21 +229,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         menu = findViewById(R.id.menuNav);
         buttonConfig = findViewById(R.id.btnConfiguracion);
         iconoOrden = findViewById(R.id.iconoOrden);
+        buttonUbicacion = findViewById(R.id.btnUbicacion);
+
+
         buttonFiltros.setOnClickListener(this);
         buttonOrden.setOnClickListener(this);
         config.setOnClickListener(this);
         menu.setOnClickListener(this);
         buttonConfig.setOnClickListener(this);
         iconoOrden.setOnClickListener(this);
+        buttonUbicacion.setOnClickListener(this);
 
         //Valores por defecto cuando inicia la aplicacion
         iconoOrden.setImageResource(getResources().getIdentifier(id_iconoOrden,
                 DRAWABLE, getPackageName()));
         buttonOrden.setText(getResources().getString(R.string.precio));
 
+
         //Se cargan las opciones de ordenacion en la linked list que inyectaremos al spinner correspondiente
         Collections.addAll(operacionesOrdenacion, getResources().getStringArray(R.array.opcionesOrden));
     }
+
 
     public void clickMenu() {
         openDrawer(drawerLayout);
@@ -269,16 +328,298 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     e.toString();
                 }
             }
+
+
             closeDrawer(drawerLayout);
             refresca();
         });
         builder.setNegativeButton(getResources().getString(R.string.cancelar), (dialog, id) -> {
             dialog.dismiss();
-            closeDrawer(drawerLayout);
+
         });
         builder.setView(mView);
         builder.create();
         builder.show();
+    }
+
+    /**
+     * Segunda opcion en la barra superior de la izquierda para poder anhadir una
+     * ubicacion como punto de partida habitual
+     */
+    public void clickUbicacion() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Ubicación");
+
+        // Vista escondida del nuevo layout para las diferentes celdas a implementar para los filtros
+        View mView = getLayoutInflater().inflate(R.layout.anhadir_ubicacion_punto_partida_layout, null);
+        builder.setView(mView);
+        AlertDialog dialog = builder.create();
+
+
+        // Campos necesarios para comprobar todos los casos de error existentes
+        textInputLatitud = mView.findViewById(R.id.layout_latitud);
+        textInputLongitud = mView.findViewById(R.id.layout_longitud);
+        labelLatitud = mView.findViewById(R.id.labelLatitud);
+        labelLongitud = mView.findViewById(R.id.labelLongitud);
+
+        buttonCancelar = mView.findViewById(R.id.btn_cancelar);
+        buttonEstablecer = mView.findViewById(R.id.btn_establecer);
+
+        final TextView comb = mView.findViewById(R.id.ubicacionPorDefecto);
+
+        try {
+            comb.setText("Ubicación actual: " + presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        /**
+         * Llamada al metodo para detectar errores en tiempo de ejecucion.
+         */
+        detectaErroresTiempoDeEjecucion(textInputLatitud, labelLatitud);
+        detectaErroresTiempoDeEjecucion(textInputLongitud, labelLongitud);
+
+        /**
+         * Botones
+         */
+        // Boton Establecer
+        buttonEstablecer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if ((!validateLatitudLongitud(textInputLatitud,labelLatitud) | !validateLatitudLongitud(textInputLongitud,labelLongitud))) {
+                    return;
+                } else {
+
+                    latitud = textInputLatitud.getEditText().getText().toString().trim();
+                    longitud = textInputLongitud.getEditText().getText().toString().trim();
+
+                    newCoordenada = latitud + " " + longitud;
+
+
+                    try {
+                        presenterGasolineras.escrituraCoordenadaPorDefecto(newCoordenada, ac, FICHERO_UBICACION);
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+
+                    }catch (IOException ex){
+                        ex.printStackTrace();
+
+                    } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
+                        coordenadaNoExistente.printStackTrace();
+                    }
+
+                    try {
+                        newCoordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    dialog.dismiss();
+                    closeDrawer(drawerLayout);
+                    refresca();
+                }
+            }
+
+        });
+
+        // Boton Cancelar
+        buttonCancelar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
+
+    /**
+     * Comprobacion en tiempo de ejecucion de los posibles casos de error
+     * @param text TextInputLayout que se va a tratar en cada caso.
+     * @param label label situado en la zona superior a cada campo
+     */
+    public void detectaErroresTiempoDeEjecucion(TextInputLayout text, TextView label ) {
+        text.getEditText().addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                // Se comprueba si existe algun caracter erroneo
+                // Solo se permiten valores entre el 0 y el 9, el punto y el guion
+                Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
+                Matcher m = p.matcher(s.toString());
+                boolean esIncorrecto = m.find();
+
+                // Se almacena el contenido del campo correspondiente
+                String latitudLongitud = s.toString().trim();
+
+                // Se comprueba que solo hay una ocurrencia tanto para el punto como para el guion
+                int numPuntos = 0;
+                int numGuion = 0;
+                for(int i=0 ; i<latitudLongitud.length(); i++){
+                    if(latitudLongitud.charAt(i) == '.'){
+                        numPuntos++;
+                    }
+
+                    if(latitudLongitud.charAt(i) == '-'){
+                        numGuion++;
+                    }
+                }
+
+                if (esIncorrecto || numPuntos > 1 || numGuion > 1) {
+                    text.setError("Existen caracteres erróneos");
+                    label.setTextColor(Color.RED);
+                    text.getEditText().setTextColor(Color.RED);
+                } else if (numGuion == 1 && latitudLongitud.charAt(0) != '-') {  // Se comprueba que en caso de que haya un guion, este esta en la primera posicion
+                    text.setError("El guion tiene que ser el primer caracter");
+                    label.setTextColor(Color.RED);
+                    text.getEditText().setTextColor(Color.RED);
+                } else {
+
+                    if (latitudLongitud.length() > 15) {
+                        label.setTextColor(Color.RED);
+                        text.getEditText().setTextColor(Color.RED);
+                    } else if (latitudLongitud.length() > 1) {
+                        text.setError(null);
+                        label.setTextColor(Color.GRAY);
+                        text.getEditText().setTextColor(Color.BLACK);
+                    }
+                }
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+    }
+
+    /**
+     * Comprobacion de los diferentes casos de error a la hora de introducir la latitud o la longitud
+     *
+     * @param text Text Input Layout que va a ser tratado, puede ser la Latitud o la Longitud
+     * @param label Etiqueta encima de cada campo que se va a corresponder con el text Input layout
+     *              que se este tratando, es decir, latitud o longitud
+     * @return true si ambos campos son introducidos correctamente o false en caso contrario.
+     */
+    private boolean validateLatitudLongitud(TextInputLayout text, TextView label ) {
+
+        // Se almacena el contenido del campo correspondiente
+        String latitudLongitud = text.getEditText().getText().toString().trim();
+
+        // Se comprueba que no este vacio
+        if (latitudLongitud.isEmpty()) {
+            if (text == textInputLatitud) {
+                text.setError("La latitud no puede estar vacia");
+            } else {
+                text.setError("La longitud no puede estar vacia");
+            }
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
+            return false;
+        }
+
+        // Se comprueba si existe algun caracter erroneo
+        // Solo se permiten valores entre el 0 y el 9, el punto y el guion
+        Pattern p = Pattern.compile("[^0-9.-]", Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(latitudLongitud);
+        boolean esIncorrecto = m.find();
+
+        if (esIncorrecto) {
+            text.setError("Existen caracteres erróneos");
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
+            return false;
+        }
+
+        // Se comprueba que solo hay una ocurrencia tanto para el punto como para el guion
+        int numPuntos = 0;
+        int numGuion = 0;
+        for(int i=0 ; i<latitudLongitud.length(); i++){
+            if(latitudLongitud.charAt(i) == '.'){
+                numPuntos++;
+            }
+
+            if(latitudLongitud.charAt(i) == '-'){
+                numGuion++;
+            }
+        }
+
+        // Solo se permite una ocurrencia del punto
+        if (numPuntos > 1) {
+            text.setError("Solo puede haber un punto");
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
+            return false;
+        }
+
+        // Solo se permite una ocurrencia del guion
+        if (numGuion > 1) {
+            text.setError("Solo puede haber un guión");
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
+            return false;
+        }
+
+        // Se comprueba que en caso de que haya un guion, este esta en la primera posicion
+        if (numGuion == 1 && latitudLongitud.charAt(0) != '-') {
+            text.setError("El guion tiene que ser el primer caracter");
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
+            return false;
+        }
+
+        /*
+         * Una vez comprobados los casos anteriores, se puede almacenar el numero insertado (formato correcto)
+         * para las posteriores comprobaciones a realizar
+         */
+        double numLatitudLongitud;
+        if (!text.getEditText().getText().toString().equals("-")) {
+            numLatitudLongitud = Double.parseDouble(text.getEditText().getText().toString());
+        } else {
+            numLatitudLongitud = 0;
+        }
+
+        // Se comprueba que la latitud/longitud no contenga mas de 15 caracteres
+        if (latitudLongitud.length() > 15) {
+            if (text == textInputLatitud) {
+                text.setError("Latitud demasiado larga");
+            } else {
+                text.setError("Longitud demasiado larga");
+            }
+            label.setTextColor(Color.RED);
+            text.getEditText().setTextColor(Color.RED);
+            return false;
+        }
+
+        // Se comprueba que en caso de la latitud esta este comprendida entre -90 y 90
+        if (text == textInputLatitud) {
+            if (numLatitudLongitud < -90 || numLatitudLongitud > 90) {
+                text.setError("La latitud debe ser entre -90 y 90");
+                label.setTextColor(Color.RED);
+                text.getEditText().setTextColor(Color.RED);
+                return false;
+            }
+            // Se comprueba que en caso de la longitud este este comprendida entre -180 y 180
+        } else {
+            if (numLatitudLongitud < -180 || numLatitudLongitud > 180) {
+                text.setError("La longitud debe ser entre -180 y 180");
+                label.setTextColor(Color.RED);
+                text.getEditText().setTextColor(Color.RED);
+                return false;
+            }
+        }
+
+        // Caso correcto
+        text.setError(null);
+        label.setTextColor(Color.GRAY);
+        text.getEditText().setTextColor(Color.BLACK);
+        return true;
     }
 
     /**
@@ -394,10 +735,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    /**
-     * @param drawerLayout
-     */
-    public static void openDrawer(DrawerLayout drawerLayout) {
+    public static void openDrawer(DrawerLayout drawerLayout){
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
@@ -469,6 +807,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         } else if (v.getId() == R.id.btnConfiguracion) {
             this.clickConfiguracion();
+
+        } else if (v.getId() == R.id.btnUbicacion) {
+            this.clickUbicacion();
         }
     }
 
@@ -553,10 +894,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Log.v("DEBUG", "Ha llegado a location");
                             if (location != null) {
                                 Log.v("DEBUG", "location no es null");
-                                latitud = location.getLatitude();
-                                longitud = location.getLongitude();
-                                Log.v("DEBUG", Double.toString(latitud));
-                                Log.v("DEBUG", Double.toString(longitud));
+                                numLatitud = location.getLatitude();
+                                numLongitud = location.getLongitude();
+                                Log.v("DEBUG", Double.toString(numLatitud));
+                                Log.v("DEBUG", Double.toString(numLongitud));
                             }
                         }
                     });
@@ -567,7 +908,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (criterioOrdenacion.equals(ORDEN_PRECIO)) {
                     presenterGasolineras.ordenarGasolineras(esAsc, tipoCombustible);
                 } else if (criterioOrdenacion.equals(ORDEN_DISTANCIA)) {
-                    presenterGasolineras.ordenarGasolinerasDistancia(latitud, longitud, esAsc);
+                    presenterGasolineras.ordenarGasolinerasDistancia(numLatitud, numLongitud, esAsc);
                 }
 
                 // Definimos el array adapter
@@ -580,7 +921,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!presenterGasolineras.getGasolineras().isEmpty()) {
                     // datos obtenidos con exito
                     listViewGasolineras.setAdapter(adapter);
+
                     toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.datos_exito), Toast.LENGTH_LONG);
+
+                        if (coordenada != newCoordenada) {
+
+                            toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.ubicacion_establecida), Toast.LENGTH_LONG);
+                            coordenada = newCoordenada;
+                        }
+
                 } else {
                     // los datos estan siendo actualizados en el servidor, por lo que no son actualmente accesibles
                     // sucede en torno a las :00 y :30 de cada hora
@@ -686,7 +1035,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             double precioCombustible = presenterGasolineras.getPrecioCombustible(tipoCombustible, gasolinera);
             precio.setText(precioCombustible + getResources().getString(R.string.moneda));
 
-            double distanciaKm = presenterGasolineras.getDistancia(latitud, longitud, gasolinera);
+            double distanciaKm = presenterGasolineras.getDistancia(numLatitud, numLongitud, gasolinera);
 
             distancia.setText(distanciaKm + "Km");
             // Se carga el icono

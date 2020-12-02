@@ -102,12 +102,12 @@ public class OrdenarGasolinerasPorDistanciaUITest {
         g1 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         g2 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(1);
         g3 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(2);
-        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g1.getLatitud(), g1.getLongitud());
-        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g2.getLatitud(), g2.getLongitud());
-        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g3.getLatitud(), g3.getLongitud());
+        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g1.getLatitud(), g1.getLongitud());
+        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g2.getLatitud(), g2.getLongitud());
+        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g3.getLatitud(), g3.getLongitud());
         assertTrue(distancia1 <= distancia2);
         assertTrue(distancia2 <= distancia3);
 
@@ -172,12 +172,12 @@ public class OrdenarGasolinerasPorDistanciaUITest {
         g1 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         g2 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(1);
         g3 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(2);
-        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g1.getLatitud(), g1.getLongitud());
-        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g2.getLatitud(), g2.getLongitud());
-        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g3.getLatitud(), g3.getLongitud());
+        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g1.getLatitud(), g1.getLongitud());
+        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g2.getLatitud(), g2.getLongitud());
+        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g3.getLatitud(), g3.getLongitud());
         assertTrue(distancia1 >= distancia2);
         assertTrue(distancia2 >= distancia3);
 
@@ -195,12 +195,12 @@ public class OrdenarGasolinerasPorDistanciaUITest {
         g1 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         g2 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(1);
         g3 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(2);
-        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g1.getLatitud(), g1.getLongitud());
-        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g2.getLatitud(), g2.getLongitud());
-        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
-                mActivityTestRule.getActivity().longitud, g3.getLatitud(), g3.getLongitud());
+        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g1.getLatitud(), g1.getLongitud());
+        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g2.getLatitud(), g2.getLongitud());
+        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
+                mActivityTestRule.getActivity().numLongitud, g3.getLatitud(), g3.getLongitud());
         assertTrue(distancia1 <= distancia2);
         assertTrue(distancia2 <= distancia3);
     }

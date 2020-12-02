@@ -2,7 +2,6 @@ package com.isunican.proyectobase.Views;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.isunican.proyectobase.Presenter.*;
 import com.isunican.proyectobase.Model.*;
 import com.isunican.proyectobase.R;
@@ -14,12 +13,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Location;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -67,12 +66,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String DRAWABLE = "drawable";
     private static final String FICHERO = "datos.txt";
 
+    private static final String DEBUG = "DEBUG";
 
-    //Coordenadas de la ubicacion actual
-    public double latitud = 0;
-    public double longitud = 0;
 
-    //El presenter
+    // Coordenadas de la ubicacion actual
+    public double numLatitud = 0;
+    public double numLongitud = 0;
+
+    // El presenter
     private PresenterGasolineras presenterGasolineras;
 
     // Vista de lista y adaptador para cargar datos en ella
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /*Variables para modificar filtros y ordenaciones*/
     //orden ascendente por defecto
-    private String id_iconoOrden = FLECHA_ARRIBA;
+    private String idIconoOrden = FLECHA_ARRIBA;
     private String criterioOrdenacion = ORDEN_PRECIO;
     private String tipoCombustible = "Gasóleo A"; //Por defecto
     private boolean esAsc = true; //Por defecto ascendente
@@ -184,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         iconoOrden.setOnClickListener(this);
 
         //Valores por defecto cuando inicia la aplicacion
-        iconoOrden.setImageResource(getResources().getIdentifier(id_iconoOrden,
+        iconoOrden.setImageResource(getResources().getIdentifier(idIconoOrden,
                 DRAWABLE, getPackageName()));
         buttonOrden.setText(getResources().getString(R.string.precio));
 
@@ -351,6 +352,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+                // No es necesario realizar nada
             }
         });
 
@@ -545,29 +547,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (Boolean.TRUE.equals(res)) {
                 //Recorrer el array adapter para que no muestre las gasolineras con precios negativos
                 presenterGasolineras.eliminaGasolinerasConPrecioNegativo(tipoCombustible);
-                if (ActivityCompat.checkSelfPermission(this.activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    Log.v("DEBUG", "Permiso Ubicacion Garantizado");
-                    fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            Log.v("DEBUG", "Ha llegado a location");
-                            if (location != null) {
-                                Log.v("DEBUG", "location no es null");
-                                latitud = location.getLatitude();
-                                longitud = location.getLongitude();
-                                Log.v("DEBUG", Double.toString(latitud));
-                                Log.v("DEBUG", Double.toString(longitud));
-                            }
+                if (ContextCompat.checkSelfPermission(this.activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    Log.v(DEBUG, "Permiso Ubicacion Garantizado");
+                    fusedLocationProviderClient.getLastLocation().addOnSuccessListener(location -> {
+                        Log.v(DEBUG, "Ha llegado a location");
+                        if (location != null) {
+                            Log.v(DEBUG, "location no es null");
+                            numLatitud = location.getLatitude();
+                            numLongitud = location.getLongitude();
+                            Log.v(DEBUG, Double.toString(numLatitud));
+                            Log.v(DEBUG, Double.toString(numLongitud));
                         }
                     });
                 } else {
-                    Log.v("DEBUG", "Permiso Ubicacion NO Garantizado");
+                    Log.v(DEBUG, "Permiso Ubicacion NO Garantizado");
                 }
                 //ordenacion
                 if (criterioOrdenacion.equals(ORDEN_PRECIO)) {
                     presenterGasolineras.ordenarGasolineras(esAsc, tipoCombustible);
                 } else if (criterioOrdenacion.equals(ORDEN_DISTANCIA)) {
-                    presenterGasolineras.ordenarGasolinerasDistancia(latitud, longitud, esAsc);
+                    presenterGasolineras.ordenarGasolinerasDistancia(numLatitud, numLongitud, esAsc);
                 }
 
                 // Definimos el array adapter
@@ -686,7 +685,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             double precioCombustible = presenterGasolineras.getPrecioCombustible(tipoCombustible, gasolinera);
             precio.setText(precioCombustible + getResources().getString(R.string.moneda));
 
-            double distanciaKm = presenterGasolineras.getDistancia(latitud, longitud, gasolinera);
+            double distanciaKm = presenterGasolineras.getDistancia(numLatitud, numLongitud, gasolinera);
 
             distancia.setText(distanciaKm + "Km");
             // Se carga el icono

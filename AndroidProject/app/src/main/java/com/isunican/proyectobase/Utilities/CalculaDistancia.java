@@ -8,6 +8,10 @@ import android.location.Location;
  * @author Hamza Hamda
  */
 public class CalculaDistancia {
+
+    private CalculaDistancia() { throw new IllegalStateException("Utility class"); }
+
+
     /**
      * Devuelve la distancia entre las coordenadas indicadas
      * @param latitudX  latitud de un punto x.
@@ -18,7 +22,7 @@ public class CalculaDistancia {
      */
     public static double distanciaEntreDosCoordenadas(double latitudX, double longitudX,
                                                       double latitudY, double longitudY){
-        double resul = 0.0;
+        double resul;
         Location locX = new Location("");
         locX.setLatitude(latitudX);
         locX.setLongitude(longitudX);

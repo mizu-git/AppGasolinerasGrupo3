@@ -8,6 +8,8 @@ import com.google.android.gms.location.LocationServices;
 import com.isunican.proyectobase.Presenter.*;
 import com.isunican.proyectobase.Model.*;
 import com.isunican.proyectobase.R;
+import com.isunican.proyectobase.Utilities.CalculaDistancia;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -134,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sharedpreferences = this.getPreferences(Context.MODE_PRIVATE);
         latitud = Double.parseDouble(sharedpreferences.getString("latitud", "0"));
         longitud = Double.parseDouble(sharedpreferences.getString("longitud", "0"));
-
 
         //Se iniciliazan los servicios de localizacion para obtener la ubicacion del usuario
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);

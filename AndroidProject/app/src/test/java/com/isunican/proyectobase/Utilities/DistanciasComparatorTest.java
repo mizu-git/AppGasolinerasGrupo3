@@ -60,10 +60,10 @@ public class DistanciasComparatorTest {
         }
         //ut.1e
 sut.setAsc(true);
-        assertEquals(-1, sut.compare(g5, g5), 0.001);
+        assertEquals(0, sut.compare(g5, g5), 0.001);
 //ut.1f
         sut.setAsc(false);
-        assertEquals(1, sut.compare(g5, g5), 0.001);
+        assertEquals(0, sut.compare(g5, g5), 0.001);
 
 
 

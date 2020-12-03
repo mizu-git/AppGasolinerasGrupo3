@@ -321,7 +321,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final TextView comb = mView.findViewById(R.id.ubicacionPorDefecto);
 
         try {
-            comb.setText("Ubicación actual: " + presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION));
+            String a = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
+            comb.setText("Ubicación actual: " + a.trim());
         } catch (IOException e) {
             e.printStackTrace();
         }

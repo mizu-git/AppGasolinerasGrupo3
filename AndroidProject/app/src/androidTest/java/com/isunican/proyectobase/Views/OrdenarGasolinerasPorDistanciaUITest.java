@@ -39,8 +39,8 @@ import static org.junit.Assert.assertTrue;
 public class OrdenarGasolinerasPorDistanciaUITest {
 
     private ListView ltmp;
-    Gasolinera g1, g2, g3, gN1, gN2, gN3;
-    double distancia1 = 0, distancia2 = 0, distancia3 = 0;
+    private Gasolinera g1, g2, g3, gN1, gN2, gN3;
+    private double distancia1 = 0, distancia2 = 0, distancia3 = 0;
 
 
     @Rule
@@ -136,29 +136,29 @@ public class OrdenarGasolinerasPorDistanciaUITest {
         assertEquals(gN1.getDireccion(), g1.getDireccion());
         assertEquals(gN1.getRotulo(), g1.getRotulo());
         assertEquals(gN1.getLocalidad(), g1.getLocalidad());
-        assertTrue(gN1.getGasoleoA() == g1.getGasoleoA());
-        assertTrue(gN1.getGasoleoPremium() == g1.getGasoleoPremium());
-        assertTrue(gN1.getGasolina95() == g1.getGasolina95());
-        assertTrue(gN1.getGasolina98() == g1.getGasolina98());
-        assertTrue(gN1.getBiodiesel() == g1.getBiodiesel());
+        assertEquals(gN1.getGasoleoA(), g1.getGasoleoA(), 0.001);
+        assertEquals(gN1.getGasoleoPremium(), g1.getGasoleoPremium(), 0.001);
+        assertEquals(gN1.getGasolina95(), g1.getGasolina95(), 0.001);
+        assertEquals(gN1.getGasolina98(), g1.getGasolina98(), 0.001);
+        assertEquals(gN1.getBiodiesel(), g1.getBiodiesel(), 0.001);
         //Comprobaciones gasolinera 2
         assertEquals(gN2.getDireccion(), g2.getDireccion());
         assertEquals(gN2.getRotulo(), g2.getRotulo());
         assertEquals(gN2.getLocalidad(), g2.getLocalidad());
-        assertTrue(gN2.getGasoleoA() == g2.getGasoleoA());
-        assertTrue(gN2.getGasoleoPremium() == g2.getGasoleoPremium());
-        assertTrue(gN2.getGasolina95() == g2.getGasolina95());
-        assertTrue(gN2.getGasolina98() == g2.getGasolina98());
-        assertTrue(gN2.getBiodiesel() == g2.getBiodiesel());
+        assertEquals(gN2.getGasoleoA(), g2.getGasoleoA(), 0.001);
+        assertEquals(gN2.getGasoleoPremium(), g2.getGasoleoPremium(), 0.001);
+        assertEquals(gN2.getGasolina95(), g2.getGasolina95(), 0.001);
+        assertEquals(gN2.getGasolina98(), g2.getGasolina98(), 0.001);
+        assertEquals(gN2.getBiodiesel(), g2.getBiodiesel(), 0.001);
         //Comprobaciones gasolinera 3
         assertEquals(gN3.getDireccion(), g3.getDireccion());
         assertEquals(gN3.getRotulo(), g3.getRotulo());
         assertEquals(gN3.getLocalidad(), g3.getLocalidad());
-        assertTrue(gN3.getGasoleoA() == g3.getGasoleoA());
-        assertTrue(gN3.getGasoleoPremium() == g3.getGasoleoPremium());
-        assertTrue(gN3.getGasolina95() == g3.getGasolina95());
-        assertTrue(gN3.getGasolina98() == g3.getGasolina98());
-        assertTrue(gN3.getBiodiesel() == g3.getBiodiesel());
+        assertEquals(gN3.getGasoleoA(), g3.getGasoleoA(), 0.001);
+        assertEquals(gN3.getGasoleoPremium(), g3.getGasoleoPremium(), 0.001);
+        assertEquals(gN3.getGasolina95(), g3.getGasolina95(), 0.001);
+        assertEquals(gN3.getGasolina98(), g3.getGasolina98(), 0.001);
+        assertEquals(gN3.getBiodiesel(), g3.getBiodiesel(), 0.001);
 
 
 

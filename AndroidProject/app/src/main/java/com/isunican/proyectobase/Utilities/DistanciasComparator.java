@@ -4,11 +4,11 @@ import com.isunican.proyectobase.Model.Gasolinera;
 import java.util.Comparator;
 
 /**
- * Comparador
+ * Comparador de distancias
  *
  * @author Hamza Hamda
  */
-public class DistanciasComparator implements Comparator<Gasolinera> {
+public class  DistanciasComparator implements Comparator<Gasolinera> {
     private double latitud;
     private double longitud;
     private boolean asc;
@@ -33,20 +33,25 @@ public class DistanciasComparator implements Comparator<Gasolinera> {
     public int compare(Gasolinera g1, Gasolinera g2){
         double distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(latitud, longitud, g1.getLatitud(), g1.getLongitud());
         double distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(latitud, longitud, g2.getLatitud(), g2.getLongitud());
-
-        if (asc) {//orden ascendente
-            if (distancia1 > distancia2) {
-                return 1;
-            } else {
-                return -1;
-            }
-        } else {//orden descendente
-            if (distancia1 > distancia2) {
-                return -1;
-            } else {
-                return 1;
+        int resul;
+        if(distancia1 == distancia2) {//si son iguales
+            resul = 0;
+        }else {
+            if (asc) {//orden ascendente
+                if (distancia1 > distancia2) {
+                    resul = 1;
+                } else {
+                    resul = -1;
+                }
+            } else {//orden descendente
+                if (distancia1 > distancia2) {
+                    resul = -1;
+                } else {
+                    resul = 1;
+                }
             }
         }
+        return resul;
     }
 
     public boolean isAsc() {

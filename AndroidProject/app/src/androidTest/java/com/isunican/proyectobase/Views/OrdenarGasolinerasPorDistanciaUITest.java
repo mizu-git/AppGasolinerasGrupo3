@@ -67,11 +67,11 @@ public class OrdenarGasolinerasPorDistanciaUITest {
          * aparezca el spinner para seleccionar el tipo de ordenación preferente, y los botones de “Aceptar” y “Cancelar”.
          * */
 
-        onView(ViewMatchers.withId(R.id.buttonOrden)).perform(click()); //Accedo a ordenación
+        onView(withId(R.id.buttonOrden)).perform(click()); //Accedo a ordenación
         onView((withId(R.id.tipoOrden))).perform(click()); //Doy click al spinner para ver si existe
         onData(allOf(is(instanceOf(String.class)), is("Distancia"))).inRoot(isPlatformPopup()).perform(click()); //Doy click a la opción de distancia
         onView(withText("Cancelar")).perform(click()); //Compruebo que esté el botón de cancelar
-        onView(ViewMatchers.withId(R.id.buttonOrden)).perform(click()); //Accedo a ordenación
+        onView(withId(R.id.buttonOrden)).perform(click()); //Accedo a ordenación
         onView(withText("Aceptar")).perform(click()); //Compruebo que esté el botón de cancelar
 
 
@@ -80,7 +80,7 @@ public class OrdenarGasolinerasPorDistanciaUITest {
          * estén presentes en el desplegable tanto la ordenación por precio como por distancia.
          * */
 
-        onView(ViewMatchers.withId(R.id.buttonOrden)).perform(click()); //Accedo a ordenación
+        onView(withId(R.id.buttonOrden)).perform(click()); //Accedo a ordenación
         onView((withId(R.id.tipoOrden))).perform(click()); //Doy click al spinner
         onData(allOf(is(instanceOf(String.class)), is("Distancia"))).inRoot(isPlatformPopup()).perform(click()); //Doy click a la opción de distancia
         onView(withId(R.id.tipoOrden)).check(matches(withSpinnerText(containsString("Distancia")))); //Verifico que se haya seleccionado la opción
@@ -102,12 +102,12 @@ public class OrdenarGasolinerasPorDistanciaUITest {
         g1 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         g2 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(1);
         g3 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(2);
-        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g1.getLatitud(), g1.getLongitud());
-        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g2.getLatitud(), g2.getLongitud());
-        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g3.getLatitud(), g3.getLongitud());
+        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g1.getLatitud(), g1.getLongitud());
+        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g2.getLatitud(), g2.getLongitud());
+        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g3.getLatitud(), g3.getLongitud());
         assertTrue(distancia1 <= distancia2);
         assertTrue(distancia2 <= distancia3);
 
@@ -117,7 +117,7 @@ public class OrdenarGasolinerasPorDistanciaUITest {
          * */
 
         onView(withId(R.id.buttonOrden)).check(matches(withText("DISTANCIA")));
-        onView(ViewMatchers.withId(R.id.buttonOrden)).perform(click()); //Accedo a ordenación
+        onView(withId(R.id.buttonOrden)).perform(click()); //Accedo a ordenación
 
 
         /*
@@ -167,17 +167,17 @@ public class OrdenarGasolinerasPorDistanciaUITest {
          * de las gasolineras a descendente, es decir, que aparezcan ordenadas de mayor a menor distancia.
          * */
 
-        onView(ViewMatchers.withId(R.id.iconoOrden)).perform(click()); //Doy click a la imagen de cambio de orden
+        onView(withId(R.id.iconoOrden)).perform(click()); //Doy click a la imagen de cambio de orden
         ltmp = mActivityTestRule.getActivity().findViewById(R.id.listViewGasolineras);
         g1 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         g2 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(1);
         g3 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(2);
-        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g1.getLatitud(), g1.getLongitud());
-        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g2.getLatitud(), g2.getLongitud());
-        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g3.getLatitud(), g3.getLongitud());
+        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g1.getLatitud(), g1.getLongitud());
+        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g2.getLatitud(), g2.getLongitud());
+        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g3.getLatitud(), g3.getLongitud());
         assertTrue(distancia1 >= distancia2);
         assertTrue(distancia2 >= distancia3);
 
@@ -187,7 +187,7 @@ public class OrdenarGasolinerasPorDistanciaUITest {
          * el orden de las gasolineras a ascendente, es decir, que aparezcan ordenadas de menor a mayor distancia.
          * */
 
-        onView(ViewMatchers.withId(R.id.iconoOrden)).perform(click()); //Doy click a la imagen de cambio de orden
+        onView(withId(R.id.iconoOrden)).perform(click()); //Doy click a la imagen de cambio de orden
         ltmp = mActivityTestRule.getActivity().findViewById(R.id.listViewGasolineras);
         g1 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         g2 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(1);
@@ -195,12 +195,12 @@ public class OrdenarGasolinerasPorDistanciaUITest {
         g1 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(0);
         g2 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(1);
         g3 = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(2);
-        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g1.getLatitud(), g1.getLongitud());
-        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g2.getLatitud(), g2.getLongitud());
-        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().numLatitud,
-                mActivityTestRule.getActivity().numLongitud, g3.getLatitud(), g3.getLongitud());
+        distancia1 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g1.getLatitud(), g1.getLongitud());
+        distancia2 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g2.getLatitud(), g2.getLongitud());
+        distancia3 = CalculaDistancia.distanciaEntreDosCoordenadas(mActivityTestRule.getActivity().latitud,
+                mActivityTestRule.getActivity().longitud, g3.getLatitud(), g3.getLongitud());
         assertTrue(distancia1 <= distancia2);
         assertTrue(distancia2 <= distancia3);
     }

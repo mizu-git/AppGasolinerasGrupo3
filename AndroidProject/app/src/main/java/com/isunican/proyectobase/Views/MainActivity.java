@@ -222,6 +222,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Valores por defecto cuando inicia la aplicacion
         iconoOrden.setImageResource(getResources().getIdentifier(idIconoOrden,
                 DRAWABLE, getPackageName()));
+        iconoOrden.setTag(getResources().getIdentifier(idIconoOrden,
+                DRAWABLE, getPackageName()));;
         buttonOrden.setText(getResources().getString(R.string.precio));
 
         //Se cargan las opciones de ordenacion en la linked list que inyectaremos al spinner correspondiente
@@ -523,6 +525,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //se cambia el icono del orden
             iconoOrden.setImageResource(getResources().getIdentifier(valorActualconoOrden,
                     DRAWABLE, getPackageName()));
+            iconoOrden.setTag(getResources().getIdentifier(valorActualconoOrden,
+                    DRAWABLE, getPackageName()));;
             refresca();
         } else if (v.getId() == R.id.info) {
             //Creating the instance of PopupMenu

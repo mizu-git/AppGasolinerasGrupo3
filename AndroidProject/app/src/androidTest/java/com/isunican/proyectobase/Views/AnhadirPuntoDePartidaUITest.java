@@ -4,6 +4,7 @@ import android.view.Gravity;
 import android.widget.ListView;
 
 import androidx.test.rule.ActivityTestRule;
+import androidx.test.rule.GrantPermissionRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.isunican.proyectobase.Model.Gasolinera;
@@ -37,6 +38,8 @@ public class AnhadirPuntoDePartidaUITest {
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION);
 
     @Test
     public void establecerTipoCombustibleTest() throws InterruptedException {

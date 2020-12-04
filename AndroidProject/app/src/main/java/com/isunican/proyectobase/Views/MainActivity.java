@@ -1,36 +1,48 @@
 package com.isunican.proyectobase.Views;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.material.textfield.TextInputLayout;
 import com.isunican.proyectobase.Presenter.*;
 import com.isunican.proyectobase.Model.*;
 import com.isunican.proyectobase.R;
-
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.text.Editable;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import android.util.Log;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -52,27 +64,37 @@ import android.widget.Toast;
 */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    public static final String PRECIO_ASC = "Precio (asc)";
-    public static final String FLECHA_ARRIBA = "flecha_arriba";
-    public static final String DRAWABLE = "drawable";
+    private static final String FLECHA_ARRIBA = "flecha_arriba";
+    private static final String FLECHA_ABAJO = "flecha_abajo";
+    private static final String ORDEN_PRECIO = "Precio";
+    private static final String ORDEN_DISTANCIA = "Distancia";
+    private static final String DRAWABLE = "drawable";
+    private static final String FICHERO = "datos.txt";
     public static final String CANCELAR = "Cancelar";
-    public static final String FICHERO = "datos.txt";
     public static final String FICHERO_UBICACION = "datosUbicacion.txt";
 
-    PresenterGasolineras presenterGasolineras;
+    private static final String DEBUG = "DEBUG";
+
+    //laltitud y longitud de la ubicacion del usuario
+    public double latitud;
+    public double longitud;
+
+    // El presenter
+    private PresenterGasolineras presenterGasolineras;
 
     // Vista de lista y adaptador para cargar datos en ella
-    ListView listViewGasolineras;
-    ArrayAdapter<Gasolinera> adapter;
+    private ListView listViewGasolineras;
+    private ArrayAdapter<Gasolinera> adapter;
     // Swipe and refresh (para recargar la lista con un swipe)
-    SwipeRefreshLayout mSwipeRefreshLayout;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     //Botones de filtro y ordenacion
-    Button buttonFiltros;
-    Button buttonOrden;
-    ImageButton config;
-    ImageView menu;
-    Button buttonConfig;
+    private Button buttonFiltros;
+    private Button buttonOrden;
+    private ImageButton config;
+    private ImageView menu;
+    private Button buttonConfig;
+    private ImageView iconoOrden;
     Button buttonUbicacion;
 
     TextInputLayout textInputLatitud;
@@ -83,29 +105,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button buttonEstablecer;
 
 
-
-
     //DRAWER LAYOUT
-    DrawerLayout drawerLayout;
+    private DrawerLayout drawerLayout;
 
     /*Variables para modificar filtros y ordenaciones*/
     //orden ascendente por defecto
-    final String[] buttonString = {PRECIO_ASC};
-    final String[] idImgOrdernPrecio = {FLECHA_ARRIBA};
+    private String idIconoOrden = FLECHA_ARRIBA;
+    private String criterioOrdenacion = ORDEN_PRECIO;
+    private String tipoCombustible = "Gasóleo A"; //Por defecto
+    private boolean esAsc = true; //Por defecto ascendente
+    private LinkedList<String> operacionesOrdenacion = new LinkedList<>();
 
-    String tipoCombustible = "Gasóleo A"; //Por defecto
 
     // Coordenadas por defecto
-    String latitud = "43.350223552917";
-    String longitud = "-4.052258920907";
-    String coordenada = latitud + " " + longitud;
+    String txt_latitud = "43.350223552917";
+    String txt_longitud = "-4.052258920907";
+    String coordenada = txt_latitud + " " + txt_longitud;
     String newCoordenada;
 
 
-    boolean esAsc = true; //Por defecto ascendente
 
     Activity ac = this;
 
+    //API's que se utilizan para conocer la ubicacion del usuario
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+
+    //API que se utiliza para guardar la ultima ubicacion conocidad del usuario
+    private SharedPreferences sharedpreferences;
 
     /**
      * onCreate
@@ -119,37 +147,76 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Se solicitan los permison de ubicacion al usuario
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                99);
+
+        //Localizacion
+        //Se cargan la latitud y longitud por defecto, o las ultimas conocidad de la ultima vez que
+        //que el usuario utilizo la aplicacion
+        sharedpreferences = this.getPreferences(Context.MODE_PRIVATE);
+        latitud = Double.parseDouble(sharedpreferences.getString("latitud", "0"));
+        longitud = Double.parseDouble(sharedpreferences.getString("longitud", "0"));
+
+        //Se iniciliazan los servicios de localizacion para obtener la ubicacion del usuario
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        //Se actualizara la ubicacion del usuario cada 10 segundos
+        locationRequest.setInterval(10000);
+
+        //Listener de los cambios de ubicacion
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
+                        latitud = location.getLatitude();
+                        longitud = location.getLongitude();
+                    }
+                }
+            }
+        };
+
+        //Se inicializa el presenter de las gasolineras
         this.presenterGasolineras = new PresenterGasolineras();
 
         try {
             //Lectura inicial del tipo de combustible por defecto
             tipoCombustible = presenterGasolineras.lecturaCombustiblePorDefecto(this, FICHERO);
-        } catch(Exception e) {
+
+        } catch (Exception e) {
+            e.toString();
             try {
                 presenterGasolineras.escrituraCombustiblePorDefecto("Gasóleo A", this, FICHERO);
             } catch (FileNotFoundException ex) {
-                ex.printStackTrace();
-            }catch (IOException exc){
-                exc.printStackTrace();
+                ex.toString();
+            } catch (IOException exc) {
+                exc.toString();
+
             } catch (PresenterGasolineras.CombustibleNoExistente combustibleNoExistente) {
-                combustibleNoExistente.printStackTrace();
+                combustibleNoExistente.toString();
             }
         }
 
         try {
             tipoCombustible = presenterGasolineras.lecturaCombustiblePorDefecto(this, FICHERO);
         } catch (IOException e) {
-            e.printStackTrace();
+            e.toString();
         }
 
 
         try {
             //Lectura inicial de las coordenadas por defecto
-            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO_UBICACION);
 
         } catch(Exception e) {
             try {
-                presenterGasolineras.escrituraCoordenadaPorDefecto("43.350223552917 -4.052258920907", this, FICHERO);
+                presenterGasolineras.escrituraCoordenadaPorDefecto("43.350223552917 -4.052258920907", this, FICHERO_UBICACION);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }catch (IOException exc){
@@ -160,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         try {
-            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO_UBICACION);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -191,15 +258,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         config = findViewById(R.id.info);
         menu = findViewById(R.id.menuNav);
         buttonConfig = findViewById(R.id.btnConfiguracion);
+        iconoOrden = findViewById(R.id.iconoOrden);
         buttonUbicacion = findViewById(R.id.btnUbicacion);
+
 
         buttonFiltros.setOnClickListener(this);
         buttonOrden.setOnClickListener(this);
         config.setOnClickListener(this);
         menu.setOnClickListener(this);
         buttonConfig.setOnClickListener(this);
+        iconoOrden.setOnClickListener(this);
         buttonUbicacion.setOnClickListener(this);
 
+        //Valores por defecto cuando inicia la aplicacion
+        iconoOrden.setImageResource(getResources().getIdentifier(idIconoOrden,
+                DRAWABLE, getPackageName()));
+        iconoOrden.setTag(getResources().getIdentifier(idIconoOrden,
+                DRAWABLE, getPackageName()));;
+        buttonOrden.setText(getResources().getString(R.string.precio));
+
+
+        //Se cargan las opciones de ordenacion en la linked list que inyectaremos al spinner correspondiente
+        Collections.addAll(operacionesOrdenacion, getResources().getStringArray(R.array.opcionesOrden));
     }
 
 
@@ -220,39 +300,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final Spinner mSpinner = (Spinner) mView.findViewById(R.id.combustible_por_defecto);// New spinner object
         final TextView comb = mView.findViewById(R.id.porDefecto);
         try {
-            comb.setText("Combustible actual: "+presenterGasolineras.lecturaCombustiblePorDefecto(ac, FICHERO));
+            comb.setText("Combustible actual: " + presenterGasolineras.lecturaCombustiblePorDefecto(ac, FICHERO));
         } catch (IOException e) {
-            e.printStackTrace();
+            e.toString();
         }
         // El spinner creado contiene todos los items del array de Strings "operacionesArray"
         final ArrayAdapter<String> adapterSpinner = new ArrayAdapter<String>(
                 this, android.R.layout.simple_spinner_item,
-                getResources().getStringArray(R.array.operacionesArray)){
+                getResources().getStringArray(R.array.operacionesArray)) {
             @Override
-            public boolean isEnabled(int position){
+            public boolean isEnabled(int position) {
                 boolean habilitado;
-                if(position == 0)
-                {
+                if (position == 0) {
                     // Disable the first item from Spinner
                     // First item will be use for hint
                     habilitado = false;
-                }
-                else
-                {
+                } else {
                     habilitado = true;
                 }
                 return habilitado;
             }
+
             @Override
             public View getDropDownView(int position, View convertView,
                                         ViewGroup parent) {
                 View view = super.getDropDownView(position, convertView, parent);
                 TextView tv = (TextView) view;
-                if(position == 0){
+                if (position == 0) {
                     // Set the hint text color gray
                     tv.setTextColor(Color.GRAY);
-                }
-                else {
+                } else {
                     tv.setTextColor(Color.BLACK);
                 }
                 return view;
@@ -271,16 +348,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 try {
                     presenterGasolineras.escrituraCombustiblePorDefecto(mSpinner.getSelectedItem().toString(), ac, FICHERO);
                 } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }catch (IOException ex){
-                    ex.printStackTrace();
+                    e.toString();
+                } catch (IOException ex) {
+                    ex.toString();
                 } catch (PresenterGasolineras.CombustibleNoExistente combustibleNoExistente) {
-                    combustibleNoExistente.printStackTrace();
+                    combustibleNoExistente.toString();
                 }
                 try {
                     tipoCombustible = presenterGasolineras.lecturaCombustiblePorDefecto(ac, FICHERO);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    e.toString();
                 }
             }
 
@@ -288,7 +365,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             closeDrawer(drawerLayout);
             refresca();
         });
+
         builder.setNegativeButton(CANCELAR, (dialog, id) -> dialog.dismiss());
+
         builder.setView(mView);
         builder.create();
         builder.show();
@@ -320,12 +399,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         final TextView comb = mView.findViewById(R.id.ubicacionPorDefecto);
 
-        try {
-            String a = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
-            comb.setText("Ubicación actual: " + a.trim());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String a = String.format("%.2f", latitud) + ", " + String.format("%.2f", longitud);
+        comb.setText("Ubicación actual: " + a.trim());
+
 
         /**
          * Llamada al metodo para detectar errores en tiempo de ejecucion.
@@ -342,10 +418,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             } else {
 
-                latitud = textInputLatitud.getEditText().getText().toString().trim();
-                longitud = textInputLongitud.getEditText().getText().toString().trim();
+                txt_latitud = textInputLatitud.getEditText().getText().toString().trim();
+                txt_longitud = textInputLongitud.getEditText().getText().toString().trim();
 
-                newCoordenada = latitud + " " + longitud;
+                newCoordenada = txt_latitud + " " + txt_longitud;
 
 
                 try {
@@ -361,13 +437,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 coordenadaNoExistente.printStackTrace();
                 }
 
-                try {
-                    newCoordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+                stopLocationUpdates();
+                latitud = Double.parseDouble(txt_latitud);
+                longitud = Double.parseDouble(txt_longitud);
                 dialog.dismiss();
                 closeDrawer(drawerLayout);
                 refresca();
@@ -553,7 +625,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 text.getEditText().setTextColor(Color.RED);
                 return false;
             }
-        // Se comprueba que en caso de la longitud este este comprendida entre -180 y 180
+            // Se comprueba que en caso de la longitud este este comprendida entre -180 y 180
         } else {
             if (numLatitudLongitud < -180 || numLatitudLongitud > 180) {
                 text.setError("La longitud debe ser entre -180 y 180");
@@ -570,111 +642,214 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
+    /**
+     *
+     */
+    private void clickFiltros() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Set the dialog title
+        builder.setTitle("Filtros");
+        // Specify the list array, the items to be selected by default (null for none),
+
+        // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
+        View mView = getLayoutInflater().inflate(R.layout.dialog_spinner, null);
+
+        final TextView txtComb = mView.findViewById(R.id.combustibleSeleccionado);
+        txtComb.setText(this.tipoCombustible);
+        final Spinner mSpinner = (Spinner) mView.findViewById(R.id.spinner);    // New spinner object
+        // El spinner creado contiene todos los items del array de Strings "operacionesArray"
+        ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(MainActivity.this,
+                android.R.layout.simple_spinner_item,
+                getResources().getStringArray(R.array.operacionesArray));
+        // Al abrir el spinner la lista se abre hacia abajo
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(adapterSpinner);
+
+        // Opcion "Aceptar"
+        builder.setPositiveButton(getResources().getString(R.string.aceptar), (dialog, id) -> {
+            // User clicked Aceptar, save the item selected in the spinner
+            // If the user does not select nothing, don't do anything
+            if (!mSpinner.getSelectedItem().toString().equalsIgnoreCase("Tipo de Combustible")) {
+                tipoCombustible = mSpinner.getSelectedItem().toString();
+
+            }
+            refresca();
+        });
+
+        //Opcion "Cancelar"
+        builder.setNegativeButton(getResources().getString(R.string.cancelar), (dialog, id) -> dialog.dismiss());
+        builder.setView(mView);
+        builder.create();
+        builder.show();
+    }
+
+    /**
+     * Se ejecuta cuando se pulsa la opcion de ordenacion en la aplicacion
+     */
+    private void clickOrdenacion() {
+        //comienzo de ordenar
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
+        View mView = getLayoutInflater().inflate(R.layout.ordenar_layout, null);
+
+        builder.setTitle(getResources().getString(R.string.tipo_ordenacion));
+
+        final Spinner mSpinner = (Spinner) mView.findViewById(R.id.tipoOrden);    // New spinner object
+        // El spinner creado contiene todos los items del array de Strings "operacionesArray"
+        ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(MainActivity.this,
+                android.R.layout.simple_spinner_item,
+                operacionesOrdenacion);
+
+        //variable donde se guardara la posicion del elemento seleccionado dentro del spinner
+        final int[] posicionSeleccionada = {0};
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                //se guarda la poscion del elemento seleccionado
+                posicionSeleccionada[0] = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // No es necesario realizar nada
+            }
+        });
+
+        // Al abrir el spinner la lista se abre hacia abajo
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(adapterSpinner);
+
+        //Opcion "Aceptar"
+        builder.setPositiveButton(getResources().getString(R.string.aceptar), (dialog, id) -> {
+            criterioOrdenacion = mSpinner.getSelectedItem().toString();
+            if (criterioOrdenacion.equals(ORDEN_PRECIO)) {
+                buttonOrden.setText(getResources().getString(R.string.precio));
+            } else if (criterioOrdenacion.equals(ORDEN_DISTANCIA)) {
+                buttonOrden.setText(getResources().getString(R.string.distancia));
+            }
+
+            //Se coloca el elemento seleccionado del spinner en la primera posicion
+            int posicion = posicionSeleccionada[0];
+            if (posicion != 0) {
+                moverPrincipioOpcionSeleccionada(posicion);
+            }
+            refresca();
+        });
+
+        //Opcion "Cancelar"
+        builder.setNegativeButton(getResources().getString(R.string.cancelar), (dialog, id) -> dialog.dismiss());
+        builder.setView(mView);
+        builder.create();
+        builder.show();
+    }
+
+    /**
+     * Mueve el elemento en la poscion indicada de la lista operacionesOrdenacion
+     * al pincipio.
+     *
+     * @param posicion posicion del elemento que se desea mover.
+     */
+    private void moverPrincipioOpcionSeleccionada(int posicion) {
+        String operacionSeleccionada = operacionesOrdenacion.get(posicion);
+        operacionesOrdenacion.remove(posicion);
+        operacionesOrdenacion.addFirst(operacionSeleccionada);
+    }
+
 
     public static void openDrawer(DrawerLayout drawerLayout){
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
-    private static void closeDrawer(DrawerLayout drawerLayout){
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(coordenada.trim().equals("43.350223552917 -4.052258920907")) {
+            startLocationUpdates();
+        }
+    }
+
+    /**
+     * Inicializa las actualizaciones de la ubicacion del usuario
+     */
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+        }
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.v("DEBUG", "Se ha ejecutado el onPause");
+        closeDrawer(drawerLayout);
+
+        //Cuando se pare la aplicacion se guarda la ultima ubiucacion conocida
+        //del usuario
+        guardarUltimaUbicacion();
+        //Se paran las actualizaciones de ubicacion
+        stopLocationUpdates();
+    }
+
+    /**
+     * Cierra la barra lateral del drawer Layout.
+     * @param drawerLayout
+     */
+    private static void closeDrawer(DrawerLayout drawerLayout) {
         //close drawer layout
-        if(drawerLayout.isDrawerOpen(GravityCompat.START)){
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         }
     }
 
-    @Override
-    protected void onPause(){
-        super.onPause();
-        closeDrawer(drawerLayout);
+    /**
+     * Guarda la latitud y longitud actuales del usuario para que puedan
+     * ser accedidas mas adelante si se necesitan.
+     */
+    private void guardarUltimaUbicacion() {
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString("latitud", Double.toString(latitud));
+        editor.putString("longitud", Double.toString(longitud));
+        editor.commit();
     }
 
+    /**
+     * Detiene las actulkizaciones de la ubicacion del usuario.
+     */
+    private void stopLocationUpdates() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+    }
+
+    /**
+     * @param v
+     */
     public void onClick(View v) {
 
         if (v.getId() == R.id.buttonFiltros) {
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-            // Set the dialog title
-            builder.setTitle("Filtros");
-            // Specify the list array, the items to be selected by default (null for none),
-
-            // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
-            View mView = getLayoutInflater().inflate(R.layout.dialog_spinner, null);
-
-            final TextView txtComb = mView.findViewById(R.id.combustibleSeleccionado);
-            txtComb.setText(this.tipoCombustible);
-            final Spinner mSpinner = (Spinner) mView.findViewById(R.id.spinner);    // New spinner object
-            // El spinner creado contiene todos los items del array de Strings "operacionesArray"
-            ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(MainActivity.this,
-                    android.R.layout.simple_spinner_item,
-                    getResources().getStringArray(R.array.operacionesArray));
-            // Al abrir el spinner la lista se abre hacia abajo
-            adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            mSpinner.setAdapter(adapterSpinner);
-
-            // Set the action buttons
-            builder.setPositiveButton("Aceptar", (dialog, id) -> {
-                // User clicked Aceptar, save the item selected in the spinner
-                // If the user does not select nothing, don't do anything
-                if (!mSpinner.getSelectedItem().toString().equalsIgnoreCase("Tipo de Combustible")) {
-                    tipoCombustible = mSpinner.getSelectedItem().toString();
-
-                }
-                refresca();
-            });
-            builder.setNegativeButton(CANCELAR, (dialog, id) -> dialog.dismiss());
-            builder.setView(mView);
-            builder.create();
-            builder.show();
+            clickFiltros();
 
         } else if (v.getId() == R.id.buttonOrden) {
-            //comienzo de ordenar
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-            // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
-            View mView = getLayoutInflater().inflate(R.layout.ordenar_layout, null);
-
-
-            builder.setTitle("Ordenar");
-            final Button mb = (Button) mView.findViewById(R.id.buttonprecio);
-            final ImageView imgOrdenPrecio = mView.findViewById(R.id.iconoOrdenPrecio);
-
-            mb.setText(buttonString[0]);
-            imgOrdenPrecio.setImageResource(getResources().getIdentifier(idImgOrdernPrecio[0],
+            clickOrdenacion();
+        } else if (v.getId() == R.id.iconoOrden) {
+            String valorActualconoOrden = "";
+            if (esAsc) {
+                valorActualconoOrden = FLECHA_ABAJO;
+            } else {
+                valorActualconoOrden = FLECHA_ARRIBA;
+            }
+            //cambia el tipo orden en caso de que sea ascendente pasa a descendente
+            //y en caso de estar en descendente pasa a ascendente
+            esAsc = !esAsc;
+            //se cambia el icono del orden
+            iconoOrden.setImageResource(getResources().getIdentifier(valorActualconoOrden,
                     DRAWABLE, getPackageName()));
+            iconoOrden.setTag(getResources().getIdentifier(valorActualconoOrden,
+                    DRAWABLE, getPackageName()));;
+            refresca();
 
-            final String[]  valorActualOrdenPrecio={ buttonString[0]};
-            final String[]  valorActualIconoPrecio={idImgOrdernPrecio[0]};
-            final boolean[] ordenActual = {esAsc};
-            mb.setOnClickListener(v1 -> {
-                ordenActual [0] = !ordenActual[0];
-                if (ordenActual[0]) {
-                    valorActualIconoPrecio[0] = FLECHA_ARRIBA;
-                    valorActualOrdenPrecio[0] = PRECIO_ASC;
-                } else {
-                    valorActualIconoPrecio[0]= "flecha_abajo";
-                    valorActualOrdenPrecio[0] = "Precio (des)";
-
-                }
-                imgOrdenPrecio.setImageResource(getResources().getIdentifier(valorActualIconoPrecio[0],
-                        DRAWABLE, getPackageName()));
-                mb.setText( valorActualOrdenPrecio[0]);
-            });
-
-
-            builder.setPositiveButton("Aceptar", (dialog, id) -> {
-                buttonString[0] = valorActualOrdenPrecio[0];
-                idImgOrdernPrecio[0] = valorActualIconoPrecio[0];
-                esAsc= ordenActual[0];
-                refresca();
-            });
-
-            builder.setNegativeButton(CANCELAR, (dialog, id) -> dialog.dismiss());
-            builder.setView(mView);
-            builder.create();
-            builder.show();
-
-        } else if(v.getId() == R.id.info) {
+        } else if (v.getId() == R.id.info) {
             //Creating the instance of PopupMenu
             PopupMenu popup = new PopupMenu(MainActivity.this, config);
             //Inflating the Popup using xml file
@@ -689,6 +864,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else if (item.getItemId() == R.id.itemInfo) {
                     Intent myIntent = new Intent(MainActivity.this, InfoActivity.class);
                     MainActivity.this.startActivity(myIntent);
+                } else if (item.getItemId() == R.id.itemFiltro) {
+                    clickFiltros();
                 }
                 return true;
             });
@@ -771,7 +948,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected void onPostExecute(Boolean res) {
             Toast toast;
-
+            Log.v("DEBUG COORDENADA", latitud + ", " + longitud);
             mSwipeRefreshLayout.setRefreshing(false);
 
             // Si se ha obtenido resultado en la tarea en segundo plano
@@ -779,7 +956,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //Recorrer el array adapter para que no muestre las gasolineras con precios negativos
                 presenterGasolineras.eliminaGasolinerasConPrecioNegativo(tipoCombustible);
                 //ordenacion
-                presenterGasolineras.ordernarGasolineras(esAsc, tipoCombustible);
+                if (criterioOrdenacion.equals(ORDEN_PRECIO)) {
+                    presenterGasolineras.ordenarGasolineras(esAsc, tipoCombustible);
+                } else if (criterioOrdenacion.equals(ORDEN_DISTANCIA)) {
+                    presenterGasolineras.ordenarGasolinerasDistancia(latitud, longitud, esAsc);
+                }
+
                 // Definimos el array adapter
                 adapter = new GasolineraArrayAdapter(activity, 0, presenterGasolineras.getGasolineras());
 
@@ -808,12 +990,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // error en la obtencion de datos desde el servidor
                 if (isNetworkConnected()) {
                     toast = Toast.makeText(getApplicationContext(), getResources().getString(R.string.datos_no_obtenidos), Toast.LENGTH_LONG);
-                }
-                else{
+                } else {
                     adapter.clear();
-                    toast=Toast.makeText(getApplicationContext(),"No hay conexión a internet",Toast.LENGTH_LONG);
+                    toast = Toast.makeText(getApplicationContext(), "No hay conexión a internet", Toast.LENGTH_LONG);
                 }
-
             }
 
 
@@ -847,8 +1027,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     MainActivity.this.startActivity(myIntent);
 
                 });
-            } catch(Exception e1) {
-                e1.getStackTrace();
+            } catch (Exception e1) {
+                e1.toString();
             }
             ////////////////////////////////////////////////////////////////////////////////////////////////////
         }
@@ -898,7 +1078,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             TextView direccion = view.findViewById(R.id.textViewDireccion);
             TextView labelGasolina = view.findViewById(R.id.textViewTipoGasolina);
             TextView precio = view.findViewById(R.id.textViewGasoleoA);
-
+            TextView distancia = view.findViewById(R.id.valorDistancia);
             // Y carga los datos del item
             rotulo.setText(gasolinera.getRotulo());
             direccion.setText(gasolinera.getDireccion());
@@ -906,6 +1086,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             double precioCombustible = presenterGasolineras.getPrecioCombustible(tipoCombustible, gasolinera);
             precio.setText(precioCombustible + getResources().getString(R.string.moneda));
 
+            double distanciaKm = presenterGasolineras.getDistancia(latitud, longitud, gasolinera);
+
+            distancia.setText(String.format("%.2f", distanciaKm) + "Km");
             // Se carga el icono
             cargaIcono(gasolinera, logo);
 
@@ -919,11 +1102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 params.setMargins(15, 0, 0, 0);
                 tv.setTextSize(11);
                 TextView tmp;
-                tmp = view.findViewById(R.id.textViewGasolina95Label);
-                tmp.setTextSize(11);
                 tmp = view.findViewById(R.id.textViewGasoleoA);
-                tmp.setTextSize(11);
-                tmp = view.findViewById(R.id.textViewGasolina95);
                 tmp.setTextSize(11);
             }
 

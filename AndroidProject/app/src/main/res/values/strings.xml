@@ -20,6 +20,7 @@
     <string name="combustible_default">Escoja su combustible de preferencia</string>
     <string name="anhadir_punto_partida">Añada la ubicación como punto de partida</string>
     <string name="combustible_actual">Combustible:</string>
+    <string name="tipo_ordenacion">Ordenación</string>
     <string-array name="operacionesArray">
         <item>Combustible</item>
         <item>Gasóleo A</item>
@@ -27,6 +28,11 @@
         <item>Gasolina 98</item>
         <item>Biodiésel</item>
         <item>Gasóleo Premium</item>
+    </string-array>
+
+    <string-array name="opcionesOrden">
+        <item>Precio</item>
+        <item>Distancia</item>
     </string-array>
 
     <string-array name="distanciasArray">
@@ -37,4 +43,11 @@
         <item>10 km</item>
         <item>5 km</item>
     </string-array>
+    <string name="aceptar">Aceptar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="establecer">Establecer</string>
+    <string name="precio">Precio</string>
+    <string name="distancia">Distancia</string>
+    <string name="distanciaView">Distancia</string>
+
 </resources>

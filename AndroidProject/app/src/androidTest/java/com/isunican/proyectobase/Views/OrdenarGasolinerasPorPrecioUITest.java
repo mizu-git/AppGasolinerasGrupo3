@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
-
+/*
 @RunWith(AndroidJUnit4.class)
 public class OrdenarGasolinerasPorPrecioUITest {
 
@@ -118,4 +118,4 @@ public class OrdenarGasolinerasPorPrecioUITest {
         onView(withId(R.id.buttonprecio)).check(matches(withText("Precio (asc)")));
         onView(withText("Cancelar")).perform(click());
     }
-}
+}*/

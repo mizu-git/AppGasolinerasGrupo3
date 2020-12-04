@@ -44,7 +44,7 @@
             android:id="@+id/textViewTipoGasolina"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/marginLeftPrecios"
+            android:layout_marginLeft="10dp"
             android:text="@string/gasoleoa"
             android:textStyle="bold" />
 
@@ -52,23 +52,34 @@
             android:id="@+id/textViewGasoleoA"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/marginLabelsPrecio"
+            android:layout_marginLeft="5dp"
             android:layout_toRightOf="@+id/textViewTipoGasolina" />
 
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/relativeLayoutDistancias"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/marginTopLayoutPrecios"
+        android:layout_below="@id/textViewDireccion"
+        android:layout_toRightOf="@id/relativeLayoutPrecios">
+
         <TextView
-            android:id="@+id/textViewGasolina95Label"
+            android:id="@+id/textViewDistancia"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/marginTextView"
-            android:layout_toRightOf="@+id/textViewGasoleoA"
+            android:layout_marginLeft="10dp"
+            android:text="@string/distanciaView"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/textViewGasolina95"
+            android:id="@+id/valorDistancia"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/marginLabelsPrecio"
-            android:layout_toRightOf="@+id/textViewGasolina95Label" />
+            android:layout_marginLeft="5dp"
+            android:layout_toRightOf="@+id/textViewDistancia" />
 
     </RelativeLayout>
+
 </RelativeLayout>

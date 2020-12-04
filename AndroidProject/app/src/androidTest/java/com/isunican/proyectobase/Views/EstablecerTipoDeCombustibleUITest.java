@@ -1,11 +1,13 @@
 package com.isunican.proyectobase.Views;
 
+import android.Manifest;
 import android.view.Gravity;
 import android.widget.ListView;
 
 
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.rule.ActivityTestRule;
+import androidx.test.rule.GrantPermissionRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.isunican.proyectobase.R;
@@ -43,7 +45,9 @@ public class EstablecerTipoDeCombustibleUITest {
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
-
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION);
+    
     private ListView ltmp;
     @Before
     public void setUp(){

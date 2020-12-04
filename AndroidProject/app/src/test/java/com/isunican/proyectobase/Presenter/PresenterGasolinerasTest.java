@@ -190,40 +190,40 @@ public class PresenterGasolinerasTest {
 
 
         try {
-            pr.ordernarGasolineras(true, null);
+            pr.ordenarGasolineras(true, null);
             fail();
         } catch (NullPointerException e) {
 
         }
 
-        pr.ordernarGasolineras(true, "Gasóleo A");
+        pr.ordenarGasolineras(true, "Gasóleo A");
         assertEquals(0.90, pr.getGasolineras().get(0).getGasoleoA(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Gasóleo A");
+        pr.ordenarGasolineras(false, "Gasóleo A");
         assertEquals(1.02, pr.getGasolineras().get(0).getGasoleoA(), 0.00001);
 
-        pr.ordernarGasolineras(true, "Gasolina 95");
+        pr.ordenarGasolineras(true, "Gasolina 95");
         assertEquals(0.99, pr.getGasolineras().get(0).getGasolina95(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Gasolina 95");
+        pr.ordenarGasolineras(false, "Gasolina 95");
         assertEquals(1.21, pr.getGasolineras().get(0).getGasolina95(), 0.00001);
 
-        pr.ordernarGasolineras(true, "Gasolina 98");
+        pr.ordenarGasolineras(true, "Gasolina 98");
         assertEquals(1.07, pr.getGasolineras().get(0).getGasolina98(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Gasolina 98");
+        pr.ordenarGasolineras(false, "Gasolina 98");
         assertEquals(1.11, pr.getGasolineras().get(0).getGasolina98(), 0.00001);
 
-        pr.ordernarGasolineras(true, "Biodiésel");
+        pr.ordenarGasolineras(true, "Biodiésel");
         assertEquals(1.10, pr.getGasolineras().get(0).getBiodiesel(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Biodiésel");
+        pr.ordenarGasolineras(false, "Biodiésel");
         assertEquals(1.35, pr.getGasolineras().get(0).getBiodiesel(), 0.00001);
 
-        pr.ordernarGasolineras(true, "Gasóleo Premium");
+        pr.ordenarGasolineras(true, "Gasóleo Premium");
         assertEquals(0.92, pr.getGasolineras().get(0).getGasoleoPremium(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Gasóleo Premium");
+        pr.ordenarGasolineras(false, "Gasóleo Premium");
         assertEquals(1.16, pr.getGasolineras().get(0).getGasoleoPremium(), 0.00001);
     }
 

@@ -127,7 +127,7 @@ public class AnhadirPuntoDePartidaUITest {
 
         onView(withId(R.id.menuNav)).perform(click());
         onView(withId(R.id.btnUbicacion)).perform(click());
-        onView(withId(R.id.ubicacionPorDefecto)).check(matches(withText("Ubicación actual: -4 43")));
+        onView(withId(R.id.ubicacionPorDefecto)).check(matches(withText("Ubicación actual: -4.00, 43.00")));
 
         // Caso UIT.2B
         // Se comprueba que al pulsar el boton "Establecer" estando ordenando por distancia ascendente y haber introducido unas
@@ -139,7 +139,7 @@ public class AnhadirPuntoDePartidaUITest {
         onView(withId(R.id.btn_establecer)).perform(click());
         onView(withId(R.id.menuNav)).perform(click());
         onView(withId(R.id.btnUbicacion)).perform(click());
-        onView(withId(R.id.ubicacionPorDefecto)).check(matches(withText("Ubicación actual: -5 44")));
+        onView(withId(R.id.ubicacionPorDefecto)).check(matches(withText("Ubicación actual: -5.00, 44.00")));
 
 
         // Caso UIT.2C
@@ -152,7 +152,7 @@ public class AnhadirPuntoDePartidaUITest {
         onView(withId(R.id.btn_establecer)).perform(click());
         onView(withId(R.id.menuNav)).perform(click());
         onView(withId(R.id.btnUbicacion)).perform(click());
-        onView(withId(R.id.ubicacionPorDefecto)).check(matches(withText("Ubicación actual: -4 43")));
+        onView(withId(R.id.ubicacionPorDefecto)).check(matches(withText("Ubicación actual: -4.00, 43.00")));
 
 
         // Caso UIT.3A

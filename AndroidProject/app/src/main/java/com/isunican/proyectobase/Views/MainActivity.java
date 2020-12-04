@@ -212,12 +212,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         try {
             //Lectura inicial de las coordenadas por defecto
-            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
-            if(coordenada.equals(43.350223552917 -4.052258920907)){startLocationUpdates();};
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO_UBICACION);
 
         } catch(Exception e) {
             try {
-                presenterGasolineras.escrituraCoordenadaPorDefecto("43.350223552917 -4.052258920907", this, FICHERO);
+                presenterGasolineras.escrituraCoordenadaPorDefecto("43.350223552917 -4.052258920907", this, FICHERO_UBICACION);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }catch (IOException exc){
@@ -228,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         try {
-            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO_UBICACION);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -259,6 +258,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         config = findViewById(R.id.info);
         menu = findViewById(R.id.menuNav);
         buttonConfig = findViewById(R.id.btnConfiguracion);
+        iconoOrden = findViewById(R.id.iconoOrden);
         buttonUbicacion = findViewById(R.id.btnUbicacion);
 
 
@@ -267,10 +267,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         config.setOnClickListener(this);
         menu.setOnClickListener(this);
         buttonConfig.setOnClickListener(this);
+        iconoOrden.setOnClickListener(this);
         buttonUbicacion.setOnClickListener(this);
 
+        //Valores por defecto cuando inicia la aplicacion
+        iconoOrden.setImageResource(getResources().getIdentifier(idIconoOrden,
+                DRAWABLE, getPackageName()));
+        iconoOrden.setTag(getResources().getIdentifier(idIconoOrden,
+                DRAWABLE, getPackageName()));;
+        buttonOrden.setText(getResources().getString(R.string.precio));
 
 
+        //Se cargan las opciones de ordenacion en la linked list que inyectaremos al spinner correspondiente
+        Collections.addAll(operacionesOrdenacion, getResources().getStringArray(R.array.opcionesOrden));
     }
 
 
@@ -390,12 +399,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         final TextView comb = mView.findViewById(R.id.ubicacionPorDefecto);
 
-        try {
-            String a = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
-            comb.setText("Ubicación actual: " + a.trim());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String a = String.format("%.2f", latitud) + ", " + String.format("%.2f", longitud);
+        comb.setText("Ubicación actual: " + a.trim());
+
 
         /**
          * Llamada al metodo para detectar errores en tiempo de ejecucion.
@@ -429,13 +435,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
                 coordenadaNoExistente.printStackTrace();
-                }
-
-                try {
-                    newCoordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
 
                 stopLocationUpdates();
@@ -668,7 +667,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSpinner.setAdapter(adapterSpinner);
 
         // Opcion "Aceptar"
-        builder.setPositiveButton("Aceptar", (dialog, id) -> {
+        builder.setPositiveButton(getResources().getString(R.string.aceptar), (dialog, id) -> {
             // User clicked Aceptar, save the item selected in the spinner
             // If the user does not select nothing, don't do anything
             if (!mSpinner.getSelectedItem().toString().equalsIgnoreCase("Tipo de Combustible")) {
@@ -679,12 +678,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
         //Opcion "Cancelar"
-        builder.setNegativeButton("Cancelar", (dialog, id) -> dialog.dismiss());
+        builder.setNegativeButton(getResources().getString(R.string.cancelar), (dialog, id) -> dialog.dismiss());
         builder.setView(mView);
         builder.create();
         builder.show();
     }
 
+    /**
+     * Se ejecuta cuando se pulsa la opcion de ordenacion en la aplicacion
+     */
+    private void clickOrdenacion() {
+        //comienzo de ordenar
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Vista escondida del nuevo layout para los diferentes spinners a implementar para los filtros
+        View mView = getLayoutInflater().inflate(R.layout.ordenar_layout, null);
+
+        builder.setTitle(getResources().getString(R.string.tipo_ordenacion));
+
+        final Spinner mSpinner = (Spinner) mView.findViewById(R.id.tipoOrden);    // New spinner object
+        // El spinner creado contiene todos los items del array de Strings "operacionesArray"
+        ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(MainActivity.this,
+                android.R.layout.simple_spinner_item,
+                operacionesOrdenacion);
+
+        //variable donde se guardara la posicion del elemento seleccionado dentro del spinner
+        final int[] posicionSeleccionada = {0};
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                //se guarda la poscion del elemento seleccionado
+                posicionSeleccionada[0] = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // No es necesario realizar nada
+            }
+        });
+
+        // Al abrir el spinner la lista se abre hacia abajo
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(adapterSpinner);
+
+        //Opcion "Aceptar"
+        builder.setPositiveButton(getResources().getString(R.string.aceptar), (dialog, id) -> {
+            criterioOrdenacion = mSpinner.getSelectedItem().toString();
+            if (criterioOrdenacion.equals(ORDEN_PRECIO)) {
+                buttonOrden.setText(getResources().getString(R.string.precio));
+            } else if (criterioOrdenacion.equals(ORDEN_DISTANCIA)) {
+                buttonOrden.setText(getResources().getString(R.string.distancia));
+            }
+
+            //Se coloca el elemento seleccionado del spinner en la primera posicion
+            int posicion = posicionSeleccionada[0];
+            if (posicion != 0) {
+                moverPrincipioOpcionSeleccionada(posicion);
+            }
+            refresca();
+        });
+
+        //Opcion "Cancelar"
+        builder.setNegativeButton(getResources().getString(R.string.cancelar), (dialog, id) -> dialog.dismiss());
+        builder.setView(mView);
+        builder.create();
+        builder.show();
+    }
 
     /**
      * Mueve el elemento en la poscion indicada de la lista operacionesOrdenacion
@@ -707,6 +765,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
+        if(coordenada.trim().equals("43.350223552917 -4.052258920907")) {
+            startLocationUpdates();
+        }
     }
 
     /**
@@ -717,6 +778,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
         }
     }
+
 
     @Override
     protected void onPause() {
@@ -769,6 +831,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             clickFiltros();
 
         } else if (v.getId() == R.id.buttonOrden) {
+            clickOrdenacion();
+        } else if (v.getId() == R.id.iconoOrden) {
+            String valorActualconoOrden = "";
+            if (esAsc) {
+                valorActualconoOrden = FLECHA_ABAJO;
+            } else {
+                valorActualconoOrden = FLECHA_ARRIBA;
+            }
+            //cambia el tipo orden en caso de que sea ascendente pasa a descendente
+            //y en caso de estar en descendente pasa a ascendente
+            esAsc = !esAsc;
+            //se cambia el icono del orden
+            iconoOrden.setImageResource(getResources().getIdentifier(valorActualconoOrden,
+                    DRAWABLE, getPackageName()));
+            iconoOrden.setTag(getResources().getIdentifier(valorActualconoOrden,
+                    DRAWABLE, getPackageName()));;
+            refresca();
 
         } else if (v.getId() == R.id.info) {
             //Creating the instance of PopupMenu
@@ -785,6 +864,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else if (item.getItemId() == R.id.itemInfo) {
                     Intent myIntent = new Intent(MainActivity.this, InfoActivity.class);
                     MainActivity.this.startActivity(myIntent);
+                } else if (item.getItemId() == R.id.itemFiltro) {
+                    clickFiltros();
                 }
                 return true;
             });
@@ -874,6 +955,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (Boolean.TRUE.equals(res)) {
                 //Recorrer el array adapter para que no muestre las gasolineras con precios negativos
                 presenterGasolineras.eliminaGasolinerasConPrecioNegativo(tipoCombustible);
+                //ordenacion
+                if (criterioOrdenacion.equals(ORDEN_PRECIO)) {
+                    presenterGasolineras.ordenarGasolineras(esAsc, tipoCombustible);
+                } else if (criterioOrdenacion.equals(ORDEN_DISTANCIA)) {
+                    presenterGasolineras.ordenarGasolinerasDistancia(latitud, longitud, esAsc);
+                }
 
                 // Definimos el array adapter
                 adapter = new GasolineraArrayAdapter(activity, 0, presenterGasolineras.getGasolineras());
@@ -991,6 +1078,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             TextView direccion = view.findViewById(R.id.textViewDireccion);
             TextView labelGasolina = view.findViewById(R.id.textViewTipoGasolina);
             TextView precio = view.findViewById(R.id.textViewGasoleoA);
+            TextView distancia = view.findViewById(R.id.valorDistancia);
             // Y carga los datos del item
             rotulo.setText(gasolinera.getRotulo());
             direccion.setText(gasolinera.getDireccion());
@@ -998,6 +1086,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             double precioCombustible = presenterGasolineras.getPrecioCombustible(tipoCombustible, gasolinera);
             precio.setText(precioCombustible + getResources().getString(R.string.moneda));
 
+            double distanciaKm = presenterGasolineras.getDistancia(latitud, longitud, gasolinera);
+
+            distancia.setText(String.format("%.2f", distanciaKm) + "Km");
             // Se carga el icono
             cargaIcono(gasolinera, logo);
 

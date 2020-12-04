@@ -4,7 +4,6 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.rule.ActivityTestRule;
@@ -40,7 +39,6 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class OrdenarGasolinerasPorPrecioUITest {
 
-
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
     @Rule
@@ -49,7 +47,6 @@ public class OrdenarGasolinerasPorPrecioUITest {
     private ListView ltmp;
     private Gasolinera gBarata;
     private Gasolinera gCara;
-
 
     @Before
     public void setUp() {
@@ -68,7 +65,6 @@ public class OrdenarGasolinerasPorPrecioUITest {
         int lng = ltmp.getAdapter().getCount();
         gCara = ((ArrayAdapter<Gasolinera>) ltmp.getAdapter()).getItem(lng - 1);
     }
-
 
     @Test
     public void ordenPorPrecio() {

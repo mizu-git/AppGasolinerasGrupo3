@@ -212,11 +212,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         try {
             //Lectura inicial de las coordenadas por defecto
-            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO_UBICACION);
 
         } catch(Exception e) {
             try {
-                presenterGasolineras.escrituraCoordenadaPorDefecto("43.350223552917 -4.052258920907", this, FICHERO);
+                presenterGasolineras.escrituraCoordenadaPorDefecto("43.350223552917 -4.052258920907", this, FICHERO_UBICACION);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }catch (IOException exc){
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         try {
-            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO);
+            coordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(this, FICHERO_UBICACION);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -280,8 +280,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Se cargan las opciones de ordenacion en la linked list que inyectaremos al spinner correspondiente
         Collections.addAll(operacionesOrdenacion, getResources().getStringArray(R.array.opcionesOrden));
-
-
     }
 
 
@@ -401,12 +399,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         final TextView comb = mView.findViewById(R.id.ubicacionPorDefecto);
 
-        try {
-            String a = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
-            comb.setText("Ubicación actual: " + a.trim());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String a = String.format("%.2f", latitud) + ", " + String.format("%.2f", longitud);
+        comb.setText("Ubicación actual: " + a.trim());
+
 
         /**
          * Llamada al metodo para detectar errores en tiempo de ejecucion.
@@ -442,13 +437,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 coordenadaNoExistente.printStackTrace();
                 }
 
-                try {
-                    newCoordenada = presenterGasolineras.lecturaCoordenadaPorDefecto(ac, FICHERO_UBICACION);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+                stopLocationUpdates();
+                latitud = Double.parseDouble(txt_latitud);
+                longitud = Double.parseDouble(txt_longitud);
                 dialog.dismiss();
                 closeDrawer(drawerLayout);
                 refresca();
@@ -656,7 +647,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void clickFiltros() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
         // Set the dialog title
         builder.setTitle("Filtros");
         // Specify the list array, the items to be selected by default (null for none),
@@ -753,6 +743,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.show();
     }
 
+
     /**
      * Mueve el elemento en la poscion indicada de la lista operacionesOrdenacion
      * al pincipio.
@@ -770,19 +761,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
-        startLocationUpdates();
-    }
-
-    /**
-     * Inicializa las actualizaciones de la ubicacion del usuario
-     */
-    private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+        if(coordenada.trim().equals("43.350223552917 -4.052258920907")) {
+            startLocationUpdates();
         }
     }
 
@@ -797,6 +780,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         guardarUltimaUbicacion();
         //Se paran las actualizaciones de ubicacion
         stopLocationUpdates();
+    }
+
+    /**
+     * Inicializa las actualizaciones de la ubicacion del usuario
+     */
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+        }
     }
 
     /**
@@ -855,6 +847,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             iconoOrden.setTag(getResources().getIdentifier(valorActualconoOrden,
                     DRAWABLE, getPackageName()));;
             refresca();
+
         } else if (v.getId() == R.id.info) {
             //Creating the instance of PopupMenu
             PopupMenu popup = new PopupMenu(MainActivity.this, config);
@@ -954,7 +947,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected void onPostExecute(Boolean res) {
             Toast toast;
-
+            Log.v("DEBUG COORDENADA", latitud + ", " + longitud);
             mSwipeRefreshLayout.setRefreshing(false);
 
             // Si se ha obtenido resultado en la tarea en segundo plano

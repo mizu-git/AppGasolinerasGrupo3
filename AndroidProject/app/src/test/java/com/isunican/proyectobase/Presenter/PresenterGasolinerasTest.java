@@ -32,6 +32,8 @@ public class PresenterGasolinerasTest {
     public MockitoRule rule = MockitoJUnit.rule();
     @Mock
     MainActivity ac;
+    @Mock
+    MainActivity ac2;
 
 
     // Objeto de la clase Presentergasolineras para implementar los siguientes metodos Test
@@ -39,9 +41,13 @@ public class PresenterGasolinerasTest {
     // Gasolineras para utilizarlas posteriormente
     private ArrayList<Gasolinera> gasolineras;
     private String ruta = "datos_test.txt";
+    private String ruta2 = "datos_coord.txt";
     private FileInputStream fis;
+    private FileInputStream fis2;
     private FileOutputStream fos;
+    private FileOutputStream fos2;
     private File archivo;
+    private File archivo2;
 
     @Before
     public void setUp() {
@@ -54,6 +60,19 @@ public class PresenterGasolinerasTest {
         try {
             fis = new FileInputStream(ruta);
             when(ac.openFileInput(ruta)).thenReturn(fis);
+        } catch (FileNotFoundException e) {
+            fail("" + e.getStackTrace());
+        }
+
+        archivo2 = new File(ruta2);
+        try {
+            archivo2.createNewFile();
+        } catch (IOException e) {
+            fail("" + e.getStackTrace());
+        }
+        try {
+            fis2 = new FileInputStream(ruta2);
+            when(ac2.openFileInput(ruta2)).thenReturn(fis2);
         } catch (FileNotFoundException e) {
             fail("" + e.getStackTrace());
         }
@@ -171,40 +190,40 @@ public class PresenterGasolinerasTest {
 
 
         try {
-            pr.ordernarGasolineras(true, null);
+            pr.ordenarGasolineras(true, null);
             fail();
         } catch (NullPointerException e) {
 
         }
 
-        pr.ordernarGasolineras(true, "Gasóleo A");
+        pr.ordenarGasolineras(true, "Gasóleo A");
         assertEquals(0.90, pr.getGasolineras().get(0).getGasoleoA(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Gasóleo A");
+        pr.ordenarGasolineras(false, "Gasóleo A");
         assertEquals(1.02, pr.getGasolineras().get(0).getGasoleoA(), 0.00001);
 
-        pr.ordernarGasolineras(true, "Gasolina 95");
+        pr.ordenarGasolineras(true, "Gasolina 95");
         assertEquals(0.99, pr.getGasolineras().get(0).getGasolina95(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Gasolina 95");
+        pr.ordenarGasolineras(false, "Gasolina 95");
         assertEquals(1.21, pr.getGasolineras().get(0).getGasolina95(), 0.00001);
 
-        pr.ordernarGasolineras(true, "Gasolina 98");
+        pr.ordenarGasolineras(true, "Gasolina 98");
         assertEquals(1.07, pr.getGasolineras().get(0).getGasolina98(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Gasolina 98");
+        pr.ordenarGasolineras(false, "Gasolina 98");
         assertEquals(1.11, pr.getGasolineras().get(0).getGasolina98(), 0.00001);
 
-        pr.ordernarGasolineras(true, "Biodiésel");
+        pr.ordenarGasolineras(true, "Biodiésel");
         assertEquals(1.10, pr.getGasolineras().get(0).getBiodiesel(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Biodiésel");
+        pr.ordenarGasolineras(false, "Biodiésel");
         assertEquals(1.35, pr.getGasolineras().get(0).getBiodiesel(), 0.00001);
 
-        pr.ordernarGasolineras(true, "Gasóleo Premium");
+        pr.ordenarGasolineras(true, "Gasóleo Premium");
         assertEquals(0.92, pr.getGasolineras().get(0).getGasoleoPremium(), 0.00001);
 
-        pr.ordernarGasolineras(false, "Gasóleo Premium");
+        pr.ordenarGasolineras(false, "Gasóleo Premium");
         assertEquals(1.16, pr.getGasolineras().get(0).getGasoleoPremium(), 0.00001);
     }
 
@@ -339,5 +358,139 @@ public class PresenterGasolinerasTest {
         archivo.delete();
     }
 
-}//class
+    /**
+     * Prueba unitaria del metodo lecturaCoordenadaPorDefecto de la clase PresenterGasolinera
+     * @author Iván Sánchez
+     */
+    @Test
+    public void lecturaCoordenadaPorDefectoTest() {
 
+        FileInputStream fisVacio;
+        FileInputStream fisCoordErroneas;
+        File archivoVacio = new File("archivoVacio.txt");
+        FileWriter myWriter2;
+        File archivoCombErr = new File("archivoCombErr.txt");;
+        FileWriter myWriterErr = null;
+
+
+        try {
+            //se establece por defecto unas coordenadas
+            myWriter2 = new FileWriter(archivo2);
+            myWriter2.write("44.212 -5.899");
+            myWriter2.close();
+
+            //creamos un segundo archivo de prueba que utilizaremos como archivo vacio
+            archivoVacio.createNewFile();
+            fisVacio = new FileInputStream(archivoVacio);
+
+            archivoCombErr.createNewFile();
+            fisCoordErroneas = new FileInputStream(archivoCombErr);
+            myWriterErr = new FileWriter(archivoCombErr);
+
+
+            //se mockea el comportamiento de la activity
+            when(ac2.openFileInput("err.txt")).thenThrow(new FileNotFoundException());
+            when(ac2.openFileInput("archivoVacio.txt")).thenReturn(fisVacio);
+            when(ac2.openFileInput("archivoCombErr.txt")).thenReturn(fisCoordErroneas);
+        } catch (IOException e) {
+            fail("" + e.getStackTrace());
+        }
+
+
+        //UT.1a
+        String coordenada = null;
+        try {
+            coordenada = pr.lecturaCoordenadaPorDefecto(ac2, ruta2);
+        } catch (IOException e) {
+            fail("" + e.getStackTrace());
+        }
+        assertEquals("44.212 -5.899\n", coordenada);
+
+        //UT.1b
+        try {
+            pr.lecturaCoordenadaPorDefecto(ac2, "err.txt");
+            fail();
+        } catch (IOException e) {
+        }
+
+        //UT.1c
+        try {
+            coordenada = pr.lecturaCoordenadaPorDefecto(ac2, "");
+        } catch (IOException e) {
+            fail("" + e.getStackTrace());
+        }
+        assertEquals("43.350223552917 -4.052258920907", coordenada);
+
+        //UT.1d
+
+        try {
+            myWriterErr.write("43.350223552917 -4.052258920907");
+            myWriterErr.close();
+            coordenada = pr.lecturaCoordenadaPorDefecto(ac2, "archivoCombErr.txt");
+        } catch (IOException e) {
+            e.getMessage();
+            fail("" + e.getStackTrace());
+
+        }
+        assertEquals("43.350223552917 -4.052258920907\n", coordenada);
+
+        archivo2.delete();
+        archivoVacio.delete();
+        archivoCombErr.delete();
+
+    }
+
+    /**
+     * Prueba unitaria del metodo escrituraCoordenadaPorDefecto de la clase PresenterGasolinera
+     * @author Iván Sánchez
+     */
+    @Test
+    public void escrituraCoordenadaPorDefectoTest() {
+
+        try {
+            fos2 = new FileOutputStream(ruta2);
+            when(ac2.openFileOutput(ruta2, android.content.Context.MODE_PRIVATE)).thenReturn(fos2);
+            when(ac2.openFileOutput("err.txt", android.content.Context.MODE_PRIVATE)).thenThrow(new FileNotFoundException());
+        } catch (IOException e) {
+        }
+
+        //UT.2a
+        try {
+            pr.escrituraCoordenadaPorDefecto("43.212 -5.899",ac2,ruta2);
+        }catch (IOException e){
+            fail("" + e.getStackTrace());
+        } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
+            coordenadaNoExistente.printStackTrace();
+        }
+
+        String coordenada = null;
+        try {
+            coordenada = pr.lecturaCoordenadaPorDefecto(ac2, ruta2);
+        } catch (Exception e) {
+            fail();
+        }
+        assertEquals("43.212 -5.899\n", coordenada);
+
+        //UT.2b
+        try {
+            pr.escrituraCoordenadaPorDefecto("43.212 -5.899", ac2, "err.txt");
+            fail();
+        }catch (IOException e){
+        } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
+            coordenadaNoExistente.printStackTrace();
+        }
+
+        //UT.2c
+        try {
+            pr.escrituraCoordenadaPorDefecto("100 200", ac2, ruta2);
+            fail();
+        }catch (IOException e){
+            fail("" + e.getStackTrace());
+        } catch (PresenterGasolineras.CoordenadaNoExistente coordenadaNoExistente) {
+            coordenadaNoExistente.printStackTrace();
+        }
+        archivo2.delete();
+
+    }
+
+}//class

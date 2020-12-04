@@ -2,6 +2,7 @@
     <string name="app_name">Gasolineras</string>
     <string name="obteniendo">Obteniendo los datos...</string>
     <string name="datos_exito">Datos obtenidos con éxito</string>
+    <string name="ubicacion_establecida">Ubicación añadida correctamente</string>
     <string name="datos_no_accesibles">Los datos están siendo actualizados en el servidor, inténtelo más tarde</string>
     <string name="datos_no_obtenidos">No se han podido obtener los datos</string>
     <string name="gasoleoa">Gasóleo:</string>
@@ -15,8 +16,11 @@
     <string name="pasoDatosGasolinera">DatosGasolinera</string>
     <string name="pasoTipoCombustible">Tipo de Combustible</string>
     <string name="configuracion">Configuración</string>
+    <string name="ubicacion">Ubicación</string>
     <string name="combustible_default">Escoja su combustible de preferencia</string>
+    <string name="anhadir_punto_partida">Añada la ubicación como punto de partida</string>
     <string name="combustible_actual">Combustible:</string>
+    <string name="tipo_ordenacion">Ordenación</string>
     <string-array name="operacionesArray">
         <item>Combustible</item>
         <item>Gasóleo A</item>
@@ -24,6 +28,11 @@
         <item>Gasolina 98</item>
         <item>Biodiésel</item>
         <item>Gasóleo Premium</item>
+    </string-array>
+
+    <string-array name="opcionesOrden">
+        <item>Precio</item>
+        <item>Distancia</item>
     </string-array>
 
     <string-array name="distanciasArray">
@@ -34,4 +43,11 @@
         <item>10 km</item>
         <item>5 km</item>
     </string-array>
+    <string name="aceptar">Aceptar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="establecer">Establecer</string>
+    <string name="precio">Precio</string>
+    <string name="distancia">Distancia</string>
+    <string name="distanciaView">Distancia</string>
+
 </resources>

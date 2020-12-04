@@ -2,13 +2,12 @@ package com.isunican.proyectobase.Views;
 
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.rule.ActivityTestRule;
+import androidx.test.rule.GrantPermissionRule;
 import androidx.test.runner.AndroidJUnit4;
-
 import com.isunican.proyectobase.R;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -36,9 +35,12 @@ public class BuscarGasolinerasPorUnTipoDeCombustibleUITest {
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION);
 
     @Test
     public void tiposCombustible_Test() {
+
         // Se pulsa el boton para acceder a los Filtros.
         onView(ViewMatchers.withId(R.id.buttonFiltros)).perform(click());
 
@@ -79,7 +81,7 @@ public class BuscarGasolinerasPorUnTipoDeCombustibleUITest {
         // Se pulsa el botón Cancelar dentro del menú desplegable
         onView(withText("Cancelar")).perform(click());
 
-    /** gasoleoA_Test() **/
+        /**gasoleoA_Test()*/
 
         // Se pulsa el boton para acceder a los Filtros.
         onView(withId(R.id.buttonFiltros)).perform(click());
@@ -102,7 +104,7 @@ public class BuscarGasolinerasPorUnTipoDeCombustibleUITest {
                 .onChildView(withId(R.id.textViewTipoGasolina))
                 .check(matches(withText("Gasóleo A")));
 
-    /** gasolina95_Test() **/
+        /**gasolina95_Test()*/
 
         // Se pulsa el boton para acceder a los Filtros.
         onView(withId(R.id.buttonFiltros)).perform(click());
@@ -122,7 +124,7 @@ public class BuscarGasolinerasPorUnTipoDeCombustibleUITest {
                 .onChildView(withId(R.id.textViewTipoGasolina))
                 .check(matches(withText("Gasolina 95")));
 
-    /** gasolina98_Test() **/
+        /**gasolina98_Test()*/
 
         // Se pulsa el boton para acceder a los Filtros.
         onView(withId(R.id.buttonFiltros)).perform(click());
@@ -142,7 +144,7 @@ public class BuscarGasolinerasPorUnTipoDeCombustibleUITest {
                 .onChildView(withId(R.id.textViewTipoGasolina))
                 .check(matches(withText("Gasolina 98")));
 
-    /** biodiésel_Test() **/
+        /**biodiésel_Test()*/
 
         // Se pulsa el boton para acceder a los Filtros.
         onView(withId(R.id.buttonFiltros)).perform(click());
@@ -162,7 +164,7 @@ public class BuscarGasolinerasPorUnTipoDeCombustibleUITest {
                 .onChildView(withId(R.id.textViewTipoGasolina))
                 .check(matches(withText("Biodiésel")));
 
-    /**gasóleoPremium_Test() **/
+        /**gasóleoPremium_Test()*/
 
         // Se pulsa el boton para acceder a los Filtros.
         onView(withId(R.id.buttonFiltros)).perform(click());
@@ -183,6 +185,5 @@ public class BuscarGasolinerasPorUnTipoDeCombustibleUITest {
                 .check(matches(withText("Gasóleo Premium")));
 
     }
-
 
 }

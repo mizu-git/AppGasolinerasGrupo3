@@ -13,4 +13,8 @@
         android:id="@+id/itemInfo"
         android:title="@string/menuInfo" />
 
+    <item
+        android:id="@+id/itemFiltro"
+        android:title="Filtros" />
+
 </menu>

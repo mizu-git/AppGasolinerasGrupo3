@@ -10,5 +10,6 @@
     <dimen name="marginTopLayoutPrecios">2dp</dimen>
     <dimen name="marginLeftPrecios">20dp</dimen>
     <dimen name="marginLabelsPrecio">5dp</dimen>
+    <dimen name="marginLeftDistancia">5dp</dimen>
 
 </resources>

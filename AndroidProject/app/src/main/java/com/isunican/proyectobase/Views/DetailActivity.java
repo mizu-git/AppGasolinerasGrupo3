@@ -15,12 +15,11 @@ import com.isunican.proyectobase.Model.*;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -63,9 +62,7 @@ public class DetailActivity extends AppCompatActivity implements OnMapReadyCallb
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setIcon(R.drawable.por_defecto_mod);
 
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                99);
+
 
         mapDir = (MapView) findViewById(R.id.mapGasolinera);
         mapDir.onCreate(savedInstanceState);
@@ -127,25 +124,21 @@ public class DetailActivity extends AppCompatActivity implements OnMapReadyCallb
     @Override
     public void onMapReady(GoogleMap map) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+                == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            map.setMyLocationEnabled(true);
         }
+
+        Log.v("DEBUG", "Permisos solicitados");
         UiSettings uiSettings = map.getUiSettings();
         uiSettings.setZoomControlsEnabled(true);
-
-        map.setMyLocationEnabled(true);
+        Log.v("DEBUG", String.valueOf(map));
+        //Si las coordenadas de la gasolinera son erroneas
+        //se establece una vision de la provincia de cantabria
+        //por defecto
         if(g.getLatitud() == -1 || g.getLongitud() == -1) {
-            // Create a LatLngBounds that includes the city of Adelaide in Australia.
             LatLng cantabria = new LatLng(43.2, -4.03333);
-            // Move the camera instantly to Sydney with a zoom of 15.
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(cantabria, 8.55f));
         }else {
             LatLng latLng =new LatLng(g.getLatitud(), g.getLongitud());
@@ -156,7 +149,6 @@ public class DetailActivity extends AppCompatActivity implements OnMapReadyCallb
 
 
     }
-
 
     @Override
     public void onPause() {

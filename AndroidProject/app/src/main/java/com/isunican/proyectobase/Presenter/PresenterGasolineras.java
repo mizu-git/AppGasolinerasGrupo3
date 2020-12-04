@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.util.Log;
 
 import com.isunican.proyectobase.Model.*;
+import com.isunican.proyectobase.Utilities.CalculaDistancia;
+import com.isunican.proyectobase.Utilities.DistanciasComparator;
 import com.isunican.proyectobase.Utilities.ParserJSONGasolineras;
 import com.isunican.proyectobase.Utilities.RemoteFetch;
 
@@ -14,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -36,11 +39,15 @@ public class PresenterGasolineras {
     public static final String URL_GASOLINERAS_CANTABRIA = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroCCAA/06";
     public static final String URL_GASOLINERAS_SANTANDER = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroMunicipio/5819";
     public static final String SANTANDER = "Santander";
-    public static final String GASOLEOA = "Gasóleo A";
+    public static final String GASOLEO = "Gasóleo A";
     public static final String GASOLINA95 = "Gasolina 95";
     public static final String GASOLINA98 = "Gasolina 98";
     public static final String BIODIESEL = "Biodiésel";
     public static final String GASOLEOPREMIUM = "Gasóleo Premium";
+
+    // Coordenada Inicial
+    public static final String COORDENADAPREDETERMINADA = "43.350223552917 -4.052258920907";
+
 
     /**
      * Constructor, getters y setters
@@ -85,12 +92,12 @@ public class PresenterGasolineras {
      * @return boolean
      */
 
-    public boolean cargaDatosDummy(){
-        this.gasolineras.add(new Gasolinera(1000,SANTANDER,SANTANDER, "Av Valdecilla", 1.299,1.359, 1.3,1.2,2,"AVIA", 0, 0));
-        this.gasolineras.add(new Gasolinera(1053,SANTANDER,SANTANDER, "Plaza Matias Montero", 1.270,1.349,1.22,1.11,1.21,"CAMPSA", 0, 0));
-        this.gasolineras.add(new Gasolinera(420,SANTANDER,SANTANDER, "Area Arrabal Puerto de Raos", 1.249,1.279,1.3,1.2,1.5,"E.E.S.S. MAS, S.L.", 0, 0));
-        this.gasolineras.add(new Gasolinera(9564,SANTANDER,SANTANDER, "Av Parayas", 1.189,1.269,1.11,1.28,1.25,"EASYGAS", 0, 0));
-        this.gasolineras.add(new Gasolinera(1025,SANTANDER,SANTANDER, "Calle el Empalme", 1.259,1.319,1.65,1.27,1.01,"CARREFOUR", 0, 0));
+    public boolean cargaDatosDummy() {
+        this.gasolineras.add(new Gasolinera(1000, SANTANDER, SANTANDER, "Av Valdecilla", 1.299, 1.359, 1.3, 1.2, 2, "AVIA", 0, 0));
+        this.gasolineras.add(new Gasolinera(1053, SANTANDER, SANTANDER, "Plaza Matias Montero", 1.270, 1.349, 1.22, 1.11, 1.21, "CAMPSA", 0, 0));
+        this.gasolineras.add(new Gasolinera(420, SANTANDER, SANTANDER, "Area Arrabal Puerto de Raos", 1.249, 1.279, 1.3, 1.2, 1.5, "E.E.S.S. MAS, S.L.", 0, 0));
+        this.gasolineras.add(new Gasolinera(9564, SANTANDER, SANTANDER, "Av Parayas", 1.189, 1.269, 1.11, 1.28, 1.25, "EASYGAS", 0, 0));
+        this.gasolineras.add(new Gasolinera(1025, SANTANDER, SANTANDER, "Calle el Empalme", 1.259, 1.319, 1.65, 1.27, 1.01, "CARREFOUR", 0, 0));
         return true;
     }
 
@@ -162,7 +169,7 @@ public class PresenterGasolineras {
      * @param combustible combustible por el que se desea filtar, se utiliza el precio de este combutible
      *                    para ordenar.
      */
-    public void ordernarGasolineras(boolean asc, String combustible) {
+    public void ordenarGasolineras(boolean asc, String combustible) {
         for (int i = 0; i < gasolineras.size(); i++) {
             for (int j = 0; j < gasolineras.size() - 1; j++) {
                 Gasolinera tmp = gasolineras.get(j + 1);
@@ -182,6 +189,38 @@ public class PresenterGasolineras {
     }
 
     /**
+     * Ordena la lista de gasolineras por su distancia respecto de las coordenadas indicadas, de manera
+     * ascendente o descendente segun como se indique.
+     *
+     * @param asc      manera de odernar la lista, si asc es verdadero se orderna de forma ascendente, en
+     *                 caso contrario de forma descendente.
+     * @param latitud  latitud de la posicion repecto de la que se quiere ordenar las gasolineras
+     * @param longitud longitud de la posicion repecto de la que se quiere ordenar las gasolineras
+     */
+    public void ordenarGasolinerasDistancia(double latitud, double longitud, boolean asc) {
+        DistanciasComparator comparator = new DistanciasComparator(latitud, longitud, asc);
+        Collections.sort(gasolineras, comparator);
+    }
+
+    /**
+     * Devuelve la distancia en kilomentros entre la gasolinera y las coordenadas dadas.
+     *
+     * @param latitud    Latitud de la posicion repecto de la que se quiere calcular la distancia
+     *                   respecto a la gasolinera dada.
+     * @param longitud   Longitud de la posicion repecto de la que se quiere calcular la distancia
+     *                   respecto a la gasolinera dada.
+     * @param gasolinera gasolinera respecto de la que se quiere calcular la distancia.
+     * @return la distancia en kilometros entre la gasolinera y las coordenadas dadas.
+     */
+    public double getDistancia(double latitud, double longitud, Gasolinera gasolinera) {
+        double distancia = Math.round(CalculaDistancia.distanciaEntreDosCoordenadas(latitud, longitud, gasolinera.getLatitud(),
+                gasolinera.getLongitud()));
+        //conversion a kilometros
+        distancia /= 1000;
+        return distancia;
+    }
+
+    /**
      * Develve el precio del combustible de la gasolinera indicada segun el combustible indicado
      *
      * @param combustible combustible del que se desao conocer el precio
@@ -191,7 +230,7 @@ public class PresenterGasolineras {
     public double getPrecioCombustible(String combustible, Gasolinera g) {
         double precio = 0.0;
         switch (combustible) {
-            case GASOLEOA:
+            case GASOLEO:
                 precio = g.getGasoleoA();
                 break;
             case GASOLINA95:
@@ -219,7 +258,7 @@ public class PresenterGasolineras {
         String combustible = "";
 
         if (fichero.equals("")) {
-            combustible = GASOLEOA;
+            combustible = GASOLEO;
         } else {
             fis = a.openFileInput(fichero);
             InputStreamReader isr = new InputStreamReader(fis);
@@ -232,8 +271,8 @@ public class PresenterGasolineras {
                 }
             }
             resultado = sb.toString();
-            if (resultado.contains(GASOLEOA)) {
-                combustible = GASOLEOA;
+            if (resultado.contains(GASOLEO)) {
+                combustible = GASOLEO;
             } else if (resultado.contains(GASOLINA95)) {
                 combustible = GASOLINA95;
             } else if (resultado.contains(GASOLINA98)) {
@@ -243,7 +282,7 @@ public class PresenterGasolineras {
             } else if (resultado.contains(GASOLEOPREMIUM)) {
                 combustible = GASOLEOPREMIUM;
             } else {
-                combustible = GASOLEOA;
+                combustible = GASOLEO;
             }
 
             fis.close();
@@ -254,7 +293,7 @@ public class PresenterGasolineras {
 
     public void escrituraCombustiblePorDefecto(String combustible, Activity a, String fichero)
             throws IOException, CombustibleNoExistente {
-        if (combustible.equals(GASOLEOA) || combustible.equals(GASOLINA95) || combustible.equals(GASOLINA98) || combustible.equals(BIODIESEL) || combustible.equals(GASOLEOPREMIUM)) {
+        if (combustible.equals(GASOLEO) || combustible.equals(GASOLINA95) || combustible.equals(GASOLINA98) || combustible.equals(BIODIESEL) || combustible.equals(GASOLEOPREMIUM)) {
             FileOutputStream fos = null;
             try {
                 fos = a.openFileOutput(fichero, android.content.Context.MODE_PRIVATE);
@@ -273,4 +312,73 @@ public class PresenterGasolineras {
 
     public class CombustibleNoExistente extends Exception {
     }
+
+
+
+    /**
+     *
+     * @param a
+     * @param fichero
+     * @return
+     * @throws IOException
+     */
+    public String lecturaCoordenadaPorDefecto(Activity a, String fichero)
+            throws IOException {
+        FileInputStream fis = null;
+        String resultado = "";
+        String coordenada = "";
+
+        if (fichero.equals("")) {
+            coordenada = COORDENADAPREDETERMINADA;
+        } else {
+            fis = a.openFileInput(fichero);
+            InputStreamReader isr = new InputStreamReader(fis);
+            StringBuilder sb;
+            try (BufferedReader br = new BufferedReader(isr)) {
+                sb = new StringBuilder();
+                String text;
+                while ((text = br.readLine()) != null) {
+                    sb.append(text).append("\n");
+                }
+            }
+
+            resultado = sb.toString();
+
+            coordenada = resultado;
+
+            fis.close();
+        }
+
+        return coordenada;
+    }
+
+
+    public void escrituraCoordenadaPorDefecto(String coordenada, Activity a, String fichero)
+            throws IOException, CoordenadaNoExistente {
+
+        int posicion = coordenada.indexOf(" ");
+        String latitud = coordenada.substring(0, posicion);
+        String longitud = coordenada.substring(posicion+1);
+
+        if (Double.parseDouble(latitud) >= -90 && Double.parseDouble(latitud) <= 90 || Double.parseDouble(longitud) >= -180 && Double.parseDouble(longitud) <= 180) {
+            FileOutputStream fos = null;
+            try {
+                fos = a.openFileOutput(fichero, android.content.Context.MODE_PRIVATE);
+                fos.write(coordenada.getBytes());
+
+            } finally {
+                if (fos != null) {
+                    fos.close();
+                }
+            }
+        } else {
+            throw new CoordenadaNoExistente();
+        }
+
+    }
+
+    public class CoordenadaNoExistente extends Exception {
+    }
+
+
 }
